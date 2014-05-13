@@ -1,0 +1,50 @@
+#!/bin/sh
+
+OUT_DIR="samples"
+
+mkdir -p $OUT_DIR
+
+
+
+make_sample () {
+	# Configure the generator
+	echo unsigned int SIZE=$1\;unsigned int ITERATIONS=$2\;float POWER=$3\; > config.c
+	make config
+
+	# Generate raw data
+	./mbrot-gen > $OUT_DIR/$1-$2-$3pow.raw
+
+	# Make normal colour image
+	./raw-to-png $OUT_DIR/$1-$2-$3pow.raw $1 $1
+	mv 0,0.png $OUT_DIR/$1-$2.png
+
+	# Make (hypnotic) bw image to show boundaries clearly
+	./raw-to-png-bw $OUT_DIR/$1-$2-$3pow.raw $1 $1
+	mv 0,0.png $OUT_DIR/$1-$2-$3-pow-bw.png
+
+	rm $OUT_DIR/$1-$2-$3pow.raw
+}
+
+make_sample   35 10 2
+make_sample   70 10 2
+make_sample  140 10 2
+make_sample  280 10 2
+make_sample  560 10 2
+make_sample 1120 10 2
+make_sample 2240 10 2
+
+make_sample   35 50 2
+make_sample   70 50 2
+make_sample  140 50 2
+make_sample  280 50 2
+make_sample  560 50 2
+make_sample 1120 50 2
+make_sample 2240 50 2
+
+make_sample   35 100 2
+make_sample   70 100 2
+make_sample  140 100 2
+make_sample  280 100 2
+make_sample  560 100 2
+make_sample 1120 100 2
+make_sample 2240 100 2
