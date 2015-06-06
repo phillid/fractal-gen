@@ -4,16 +4,20 @@ int main(int argc, char **argv)
 {
 	unsigned int size, iterat, cores, i, x, y, s;
 	double power;
+	char* bname;
 	void *(*generator)(void *);
 
 	// Select correct generator for the fractal type
-	// TO DO: use basename
-	if (strcmp(argv[0], "./mbrot-gen") == 0)
+	bname = basename(argv[0]);
+	if (strcmp(bname, "mbrot-gen") == 0)
+	{
 		generator = &generate_mbrot_section;
-	else if (strcmp(argv[0], "./bship-gen") == 0)
+	} else if (strcmp(bname, "bship-gen") == 0) {
 		generator = &generate_bship_section;
-	else
+	} else {
 		fprintf(stderr, "Don't call this directly, call a symlink to me\n");
+		return EXIT_FAILURE;
+	}
 
 	if (argc != 4)
 	{
