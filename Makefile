@@ -4,8 +4,11 @@ symlinks: fractal-gen
 	ln -sf $< mbrot-gen
 	ln -sf $< bship-gen
 
-fractal-gen: fractal-gen.c
-	$(CC) -o $@ $< -lm -lpthread -Wall -Wextra -Werror
+fractal-gen: fractal-gen.o mbrot.o bship.o
+	$(CC) -o $@ $? -lm -lpthread
+
+%.o: %.c
+	$(CC) -c -o $@ $< -Wall -Wextra -Werror
 
 
 .PHONY: all clean
@@ -13,4 +16,5 @@ clean:
 	rm fractal-gen \
 	   mbrot-gen   \
 	   bship-gen   \
+	   *.o \
 	   -f
