@@ -11,7 +11,7 @@ fractal-gen: fractal-gen.o mbrot.o bship.o
 	$(CC) -c -o $@ $< -Wall -Wextra -Werror
 
 
-.PHONY: all clean
+.PHONY: all clean symlinks
 clean:
 	rm fractal-gen \
 	   mbrot-gen   \
