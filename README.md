@@ -1,6 +1,6 @@
-Mandelbrot
+Fractal Gen
 ==========
-This is a tiny program which will output a very basic raw format square image of a mandelbrot set.
+This is a tiny program which will output a very basic raw format square image of a mandelbrot or burning ship set.
 
 Just invoke it like 
 
