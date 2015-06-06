@@ -4,12 +4,13 @@
 #include <math.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <assert.h>
 
 typedef struct
 {
-	int core;
-	int cores;
-	int size;
+	unsigned int core;
+	unsigned int cores;
+	unsigned int size;
 	double power;
 	unsigned int iterat;
 	char* data;
@@ -19,16 +20,14 @@ typedef struct
 
 void *generate_section(void *d);
 
-
-
 int main(int argc, char **argv)
 {
-	int size, iterat, cores,i;
+	unsigned int size, iterat, cores, i, x, y, s;
 	double power;
 
 	if (argc != 4)
 	{
-		fprintf(stderr, "%s size iterat power", argv[0]);
+		fprintf(stderr, "%s size iterat power\n", argv[0]);
 		return EXIT_FAILURE;
 	}
 
@@ -37,21 +36,24 @@ int main(int argc, char **argv)
 	power  = atof(argv[3]);
 
 
-	// Fetch number of cores available on machine, so we can use lots of them to speed things up
-	cores = sysconf (_SC_NPROCESSORS_ONLN);
-//	cores = 8;
+	// Fetch number of cores available on machine
+	cores = sysconf(_SC_NPROCESSORS_ONLN);
 
-	// TO DO: assertions for size, iterat, power and cores
+	assert(size > 0);
+	assert(iterat > 0);
+	assert(cores > 0);
 
 
-	fprintf(stderr, "Found %d cores. I'll spawn as many threads and let the scheduler sort it out.\n", cores);
 
-	// TO DO: move to top of function
-	int x,y,s;
-
+	// Allocated memory for sections, bailing upon failure
 	data_section* sections = malloc(sizeof(data_section)*cores);
+	if (sections == NULL)
+	{
+		perror("malloc");
+		return EXIT_FAILURE;
+	}
 
-	fprintf(stderr, "Spawning threads:\n");
+	fprintf(stderr, "Spawning %d threads:\n", cores);
 	// Spawn all the threads! Something something interlacing
 	for (i = 0; i < cores; i++)
 	{
@@ -80,6 +82,7 @@ int main(int argc, char **argv)
 	for (s = 0; s < cores; s++)
 		free(sections[s].data);
 
+	free(sections);
 	fprintf(stderr,"\n");
 	return 0;
 }
@@ -88,14 +91,19 @@ int main(int argc, char **argv)
 void *generate_section(void *section)
 {
 	data_section *d = (data_section*)section;
-	d->data = malloc((d->size*d->size)/d->cores);
 	unsigned int x,y,i;
+	int idx = 0;
 	double a,b;
 	double complex z,c;
 
-	int idx = 0;
 
-	// TO DO: assert malloc succeeded
+	d->data = malloc((d->size*d->size)/d->cores);
+	if (d->data == NULL)
+	{
+		perror("malloc");
+		return NULL;
+	}
+
 
 	for (y = d->core, b = (d->core*(3.5f/d->size)-1.75f); y < d->size; b+=((d->cores*3.5f)/d->size), y+=d->cores)
 	{
