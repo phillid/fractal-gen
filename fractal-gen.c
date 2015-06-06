@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv)
 {
-	unsigned int size, iterat, cores, i, x, y, s;
+	unsigned int size, iterat, cores, i, x, y;
 	double power;
 	char* bname;
 	void *(*generator)(void *);
@@ -31,13 +31,12 @@ int main(int argc, char **argv)
 
 
 	// Fetch number of cores available on machine
+	// FIXME make the num threads selectable
 	cores = sysconf(_SC_NPROCESSORS_ONLN);
 
 	assert(size > 0);
 	assert(iterat > 0);
 	assert(cores > 0);
-
-
 
 	// Allocated memory for sections, bailing upon failure
 	data_section* sections = malloc(sizeof(data_section)*cores);
@@ -47,8 +46,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	fprintf(stderr, "Spawning %d threads:\n", cores);
 	// Spawn all the threads! Something something interlacing
+	fprintf(stderr, "Spawning %d threads:\n", cores);
 	for (i = 0; i < cores; i++)
 	{
 		// Has to be a better way
@@ -57,7 +56,17 @@ int main(int argc, char **argv)
 		sections[i].size = size;
 		sections[i].power = power;
 		sections[i].iterat = iterat;
+		sections[i].data = malloc((size*size)/cores);
+		if (sections[i].data == NULL)
+		{
+			// Free already allocated chunks of memory
+			while(i-- + 1)
+				free(sections[i].data);
 
+			free(sections);
+			perror("malloc");
+			return EXIT_FAILURE;
+		}
 		fprintf(stderr, " -> Thread #%d\n", i);
 		pthread_create(&sections[i].thread, NULL, generator, &(sections[i]));
 	}
@@ -73,8 +82,8 @@ int main(int argc, char **argv)
 			putchar(sections[y%cores].data[(y/cores)*size + x]);
 
 	// Free the memory we allocated for point data
-	for (s = 0; s < cores; s++)
-		free(sections[s].data);
+	for (i = 0; i < cores; i++)
+		free(sections[i].data);
 
 	free(sections);
 	fprintf(stderr,"\n");

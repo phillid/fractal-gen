@@ -8,15 +8,6 @@ void *generate_mbrot_section(void *section)
 	double a,b;
 	double complex z,c;
 
-
-	d->data = malloc((d->size*d->size)/d->cores);
-	if (d->data == NULL)
-	{
-		perror("malloc");
-		return NULL;
-	}
-
-
 	for (y = d->core, b = (d->core*(3.5f/d->size)-1.75f); y < d->size; b+=((d->cores*3.5f)/d->size), y+=d->cores)
 	{
 		for (x = 0, a = -2.5f; x < d->size; a+=(3.5f/d->size), x++)
