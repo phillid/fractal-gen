@@ -36,17 +36,17 @@ int main(int argc, char **argv)
 	iterat = atoi(argv[2]);
 	power  = atof(argv[3]);
 
+
 	// Fetch number of cores available on machine, so we can use lots of them to speed things up
 	cores = sysconf (_SC_NPROCESSORS_ONLN);
 //	cores = 8;
 
+	// TO DO: assertions for size, iterat, power and cores
+
 
 	fprintf(stderr, "Found %d cores. I'll spawn as many threads and let the scheduler sort it out.\n", cores);
 
-
-
-
-
+	// TO DO: move to top of function
 	int x,y,s;
 
 	data_section* sections = malloc(sizeof(data_section)*cores);
@@ -55,6 +55,7 @@ int main(int argc, char **argv)
 	// Spawn all the threads! Something something interlacing
 	for (i = 0; i < cores; i++)
 	{
+		// Has to be a better way
 		sections[i].core = i;
 		sections[i].cores = cores;
 		sections[i].size = size;
@@ -65,17 +66,17 @@ int main(int argc, char **argv)
 		pthread_create(&sections[i].thread, NULL, &generate_section, &(sections[i]));
 	}
 
-
+	// Wait for each thread to complete
 	for (i = 0; i < cores; i++)
 		pthread_join(sections[i].thread, NULL);
 
-
-
+	// Vomit the data segments back onto the screen, deinterlacing
+	// TO DO: look at fwrite performance benefits over putchar
 	for (y = 0; y < size; y++)
 		for (x = 0; x < size; x++)
-			printf("%c", sections[y%cores].data[(y/cores)*size + x]);
+			putchar(sections[y%cores].data[(y/cores)*size + x]);
 
-
+	// Free the memory we allocated for point data
 	for (s = 0; s < cores; s++)
 		free(sections[s].data);
 
@@ -93,6 +94,8 @@ void *generate_section(void *section)
 	double complex z,c;
 
 	int idx = 0;
+
+	// TO DO: assert malloc succeeded
 
 	for (y = d->core, b = (d->core*(3.5f/d->size)-1.75f); y < d->size; b+=((d->cores*3.5f)/d->size), y+=d->cores)
 	{

@@ -21,7 +21,7 @@ Notes
 -----
 
 1. This has your CPU over a barrel.
-   It spawns twice as many threads as you have cores, so have fun with that.
+   It spawns as many threads as you have cores, so have fun with that.
    I'm looking at adding an option to override the number of threads.
 
 
