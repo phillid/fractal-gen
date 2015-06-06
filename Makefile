@@ -1,7 +1,7 @@
 all: mbrot-gen
 
 mbrot-gen: mbrot-gen.c
-	$(CC) -o $@ $@.c -lm -lpthread -Wall -Wextra
+	$(CC) -o $@ $< -lm -lpthread -Wall -Wextra
 
 
 .PHONY: all clean
