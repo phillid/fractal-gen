@@ -1,10 +1,10 @@
 Fractal Gen
 ==========
-This is a tiny program which will output a very basic raw format square image of a mandelbrot or burning ship set.
+This is a tiny program which will output a binary [PGM](https://wikipedia.org/wiki/Netpbm_format#PGM_example) format square image of a mandelbrot or burning ship set.
 
 Just invoke it like 
 
-	./mbrot-gen 1000 100 2 > image.raw
+	./mbrot-gen 1000 100 2 > image.pgm
 
 For a 1000x1000 point image of a mandelbrot set using 100 iterations and an exponent of 2.
 For the clich&eacute; set you'll want to keep the exponent at 2.
