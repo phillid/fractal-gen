@@ -75,6 +75,9 @@ int main(int argc, char **argv)
 	for (i = 0; i < cores; i++)
 		pthread_join(sections[i].thread, NULL);
 
+	// Output PGM Header
+	printf("P5\n%d\n%d\n255\n",size,size);
+
 	// Vomit the data segments back onto the screen, deinterlacing
 	// TO DO: look at fwrite performance benefits over putchar
 	for (y = 0; y < size; y++)
