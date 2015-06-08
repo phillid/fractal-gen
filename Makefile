@@ -5,7 +5,7 @@ symlinks: fractal-gen
 	ln -sf $< bship-gen
 
 fractal-gen: fractal-gen.o mbrot.o bship.o
-	$(CC) -o $@ $? -lm -lpthread
+	$(CC) -o $@ $^ -lm -lpthread
 
 %.o: %.c
 	$(CC) -c -o $@ $< -Wall -Wextra -Werror
