@@ -19,9 +19,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (argc != 4)
+	if (argc != 4 || argc != 5)
 	{
-		fprintf(stderr, "%s size iterat power\n", argv[0]);
+		fprintf(stderr, "%s size iterat power [threads]\n", argv[0]);
 		return EXIT_FAILURE;
 	}
 
