@@ -21,7 +21,6 @@ void *generate_bship_section(void *section)
 
 				z = cpow( cabsf(crealf(z)) + I*cabsf(cimagf(z)) , d->power) + c;
 			}
-
 			d->data[idx++] = (255*i)/d->iterat;
 		}
 	}

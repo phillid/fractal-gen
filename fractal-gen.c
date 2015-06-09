@@ -44,11 +44,8 @@ int main(int argc, char **argv)
 	assert(iterat > 0);
 	assert(cores > 0);
 
-	// Allocated memory for sections, bailing upon failure
-	sections = malloc(sizeof(data_section)*cores);
-
-
-	if (sections == NULL)
+	// Allocate memory for sections
+	if ((sections = malloc(sizeof(data_section)*cores)) == NULL)
 	{
 		perror("malloc");
 		return EXIT_FAILURE;
@@ -65,18 +62,13 @@ int main(int argc, char **argv)
 		sections[i].power = power;
 		sections[i].iterat = iterat;
 
-int s;
-
 		// A bit complex, icky, will document later
 		if (i < (size%cores))
-			s = (size*((int)(size/cores)+1));
+			x = (size*((int)(size/cores)+1));
 		else
-			s = (size*(int)(size/cores));
+			x = (size*(int)(size/cores));
 
-		sections[i].data = malloc(s);
-
-
-		if (sections[i].data == NULL)
+		if ((sections[i].data = malloc(x)) == NULL)
 		{
 			fprintf(stderr, "\n");
 			perror("malloc");
@@ -88,7 +80,7 @@ int s;
 			free(sections);
 			return EXIT_FAILURE;
 		}
-		fprintf(stderr, " -> Thread #%d (%d)\r", i+1, s);
+		fprintf(stderr, " -> Thread #%d (%d bytes data area)\r", i+1, x);
 		pthread_create(&sections[i].thread, NULL, generator, &(sections[i]));
 	}
 
