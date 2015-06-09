@@ -5,6 +5,7 @@ int main(int argc, char **argv)
 	unsigned int size, iterat, cores, i, x, y;
 	double power;
 	char* bname;
+	data_section* sections;
 	void *(*generator)(void *);
 
 	// Select correct generator for the fractal type
@@ -19,7 +20,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (argc != 4 || argc != 5)
+	if (argc != 4 && argc != 5)
 	{
 		fprintf(stderr, "%s size iterat power [threads]\n", argv[0]);
 		return EXIT_FAILURE;
@@ -29,17 +30,24 @@ int main(int argc, char **argv)
 	iterat = atoi(argv[2]);
 	power  = atof(argv[3]);
 
-
 	// Fetch number of cores available on machine
-	// FIXME make the num threads selectable
-	cores = sysconf(_SC_NPROCESSORS_ONLN);
+	cores = argc == 5? atoi(argv[4]) : sysconf(_SC_NPROCESSORS_ONLN); 	// Screw maintainability ;)
+
+	// Interlacing is column-based, can't have more workers than columns
+	if (cores > size)
+	{
+		fprintf(stderr, "WARN: Capping number of threads to image width\n");
+		cores = size;
+	}
 
 	assert(size > 0);
 	assert(iterat > 0);
 	assert(cores > 0);
 
 	// Allocated memory for sections, bailing upon failure
-	data_section* sections = malloc(sizeof(data_section)*cores);
+	sections = malloc(sizeof(data_section)*cores);
+
+
 	if (sections == NULL)
 	{
 		perror("malloc");
@@ -56,24 +64,38 @@ int main(int argc, char **argv)
 		sections[i].size = size;
 		sections[i].power = power;
 		sections[i].iterat = iterat;
-		sections[i].data = malloc((size*size)/cores);
+
+int s;
+
+		// A bit complex, icky, will document later
+		if (i < (size%cores))
+			s = (size*((int)(size/cores)+1));
+		else
+			s = (size*(int)(size/cores));
+
+		sections[i].data = malloc(s);
+
+
 		if (sections[i].data == NULL)
 		{
+			fprintf(stderr, "\n");
+			perror("malloc");
 			// Free already allocated chunks of memory
+			i--;
 			while(i-- + 1)
 				free(sections[i].data);
 
 			free(sections);
-			perror("malloc");
 			return EXIT_FAILURE;
 		}
-		fprintf(stderr, " -> Thread #%d\n", i);
+		fprintf(stderr, " -> Thread #%d (%d)\r", i+1, s);
 		pthread_create(&sections[i].thread, NULL, generator, &(sections[i]));
 	}
 
 	// Wait for each thread to complete
 	for (i = 0; i < cores; i++)
 		pthread_join(sections[i].thread, NULL);
+
 
 	// Output PGM Header
 	printf("P5\n%d\n%d\n255\n",size,size);
@@ -84,11 +106,12 @@ int main(int argc, char **argv)
 		for (x = 0; x < size; x++)
 			putchar(sections[y%cores].data[(y/cores)*size + x]);
 
+	fprintf(stderr, "\nDone\n");
+
 	// Free the memory we allocated for point data
 	for (i = 0; i < cores; i++)
 		free(sections[i].data);
 
 	free(sections);
-	fprintf(stderr,"\n");
 	return 0;
 }
