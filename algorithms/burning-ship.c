@@ -1,16 +1,19 @@
-#include "fractal-gen.h"
+#include "../fractal-gen.h"
 
-void *generate_bship_section(void *section)
+void *generate_burning_ship_section(void *section)
 {
 	data_section *d = (data_section*)section;
 	unsigned int x,y,i;
 	int idx = 0;
 	double a,b;
 	double complex z,c;
+	double size_units = 3.5f;
+	double top = -2.2f;
+	double left = -2.2f;
 
-	for (y = d->core, b = (d->core*(3.5f/d->size)-1.75f); y < d->size; b+=((d->cores*3.5f)/d->size), y+=d->cores)
+	for (y = d->core, b = (d->core*(size_units/d->size)+top); y < d->size; b+=((d->cores*size_units)/d->size), y+=d->cores)
 	{
-		for (x = 0, a = -2.5f; x < d->size; a+=(3.5f/d->size), x++)
+		for (x = 0, a = left; x < d->size; a+=(size_units/d->size), x++)
 		{
 			z = 0;
 			c = a+I*b;

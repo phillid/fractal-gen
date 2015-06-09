@@ -6,8 +6,9 @@ This is a tiny program which will output a binary [PGM](https://wikipedia.org/wi
 Syntax
 ------
 
-    ./mbrot-gen <size> <max_iterations> <power> [threads] > output.pgm
+    ./mandelbrot-gen <size> <max_iterations> <power> [threads] > output.pgm
 
+Also check out the other algorithms like `tricorn-gen` and `burning-ship-gen`.
 You might then want to consider using a tool such as ImageMagick to then convert the (large) output file into something more sane like a PNG.
 For the clich&eacute; set you'll want to keep the exponent at 2.
 For more info on the exponent, read through [Wikipedia's fine article](http://wikipedia.org/wiki/Mandelbrot_set).

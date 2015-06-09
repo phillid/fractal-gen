@@ -22,8 +22,6 @@ typedef struct
 	pthread_t thread;
 } data_section;
 
-void *generate_mbrot_section(void *d);
-void *generate_bship_section(void *d);
-
+#include "algorithms.h"
 
 #endif

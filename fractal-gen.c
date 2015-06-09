@@ -1,5 +1,11 @@
 #include "fractal-gen.h"
 
+struct section_generator
+{
+	char *executable_name;
+	void *(*generator)(void *);
+};
+
 int main(int argc, char **argv)
 {
 	unsigned int size, iterat, cores, i, x, y;
@@ -8,14 +14,21 @@ int main(int argc, char **argv)
 	data_section* sections;
 	void *(*generator)(void *);
 
+	struct section_generator generators[] = {
+		{ "mandelbrot-gen" , &generate_mandelbrot_section },
+		{ "burning-ship-gen" , &generate_burning_ship_section },
+		{ "tricorn-gen" , &generate_tricorn_section }
+		};
+
 	// Select correct generator for the fractal type
 	bname = basename(argv[0]);
-	if (strcmp(bname, "mbrot-gen") == 0)
+	generator = NULL;
+	for (i = 0; i < sizeof(generators)/sizeof(struct section_generator); i++)
+		if (strcmp(bname, generators[i].executable_name) == 0)
+			generator = generators[i].generator;
+
+	if (generator == NULL)
 	{
-		generator = &generate_mbrot_section;
-	} else if (strcmp(bname, "bship-gen") == 0) {
-		generator = &generate_bship_section;
-	} else {
 		fprintf(stderr, "Don't call this directly, call a symlink to me\n");
 		return EXIT_FAILURE;
 	}

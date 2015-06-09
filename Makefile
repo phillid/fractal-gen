@@ -1,20 +1,28 @@
 all: fractal-gen symlinks
 
 symlinks: fractal-gen
-	ln -sf $< mbrot-gen
-	ln -sf $< bship-gen
+	ln -sf $< mandelbrot-gen
+	ln -sf $< burning-ship-gen
+	ln -sf $< burning-ship-lattice-gen
+	ln -sf $< tricorn-gen
 
-fractal-gen: fractal-gen.o mbrot.o bship.o
+fractal-gen: fractal-gen.o \
+             algorithms/mandelbrot.o \
+             algorithms/burning-ship.o \
+             algorithms/burning-ship-lattice.o \
+             algorithms/tricorn.o
+
 	$(CC) -o $@ $^ -lm -lpthread
 
 %.o: %.c
 	$(CC) -c -o $@ $< -Wall -Wextra -Werror
 
-
 .PHONY: all clean symlinks
 clean:
 	rm fractal-gen \
-	   mbrot-gen   \
-	   bship-gen   \
-	   *.o \
+	   mandelbrot-gen \
+	   burning-ship-gen \
+	   burning-ship-lattice-gen \
+	   tricorn-gen \
+	   **/*.o \
 	   -f
