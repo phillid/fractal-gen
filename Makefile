@@ -17,12 +17,14 @@ fractal-gen: fractal-gen.o \
 %.o: %.c
 	$(CC) -c -o $@ $< -Wall -Wextra -Werror
 
-.PHONY: all clean symlinks
-clean:
+.PHONY: all clean clean-object symlinks
+clean: clean-object
 	rm fractal-gen \
 	   mandelbrot-gen \
 	   burning-ship-gen \
 	   burning-ship-lattice-gen \
 	   tricorn-gen \
-	   **/*.o \
 	   -f
+
+clean-object:
+	rm -f **/*.o
