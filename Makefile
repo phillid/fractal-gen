@@ -27,4 +27,4 @@ clean: clean-object
 	   -f
 
 clean-object:
-	rm -f **/*.o
+	rm -fv *.o **/*.o
