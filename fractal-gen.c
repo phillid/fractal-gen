@@ -17,6 +17,7 @@ int main(int argc, char **argv)
 	struct section_generator generators[] = {
 		{ "mandelbrot-gen" , &generate_mandelbrot_section },
 		{ "burning-ship-gen" , &generate_burning_ship_section },
+		{ "burning-ship-lattice-gen" , &generate_burning_ship_lattice_section },
 		{ "tricorn-gen" , &generate_tricorn_section }
 		};
 
