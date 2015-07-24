@@ -40,7 +40,7 @@ void *generate_mandelbrot_section(void *section)
 
 	for (y = d->core, b = (d->core*(size_units/d->size)+top); y < d->size; b+=((d->cores*size_units)/d->size), y+=d->cores)
 	{
-		for (x = 0, a = left; x < d->size; a+=(size_units/d->size), x++)
+		for (x = d->clust_id, a = (d->clust_id*(size_units/d->size)+left); x < d->size; a+=((d->clust_total*size_units)/d->size), x+=d->clust_total)
 		{
 			z = 0;
 			c = a+I*b;

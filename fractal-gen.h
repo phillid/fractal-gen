@@ -42,6 +42,8 @@ typedef struct
 {
 	unsigned int core;
 	unsigned int cores;
+	unsigned int clust_id;
+	unsigned int clust_total;
 	unsigned int size;
 	double power;
 	unsigned int iterat;

@@ -36,6 +36,7 @@ struct section_generator
 int main(int argc, char **argv)
 {
 	unsigned int size, iterat, cores, i, x, y;
+	unsigned int clust_id, clust_total;
 	double power;
 	char* bname;
 	data_section* sections;
@@ -61,9 +62,10 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (argc != 4 && argc != 5)
+	if (argc != 4 && argc != 5 && argc != 6)
 	{
-		fprintf(stderr, "%s size iterat power [threads]\n", argv[0]);
+		fprintf(stderr, "%s size iterat power [threads]\n"
+		                "%s size iterat power [cluster id] [cluster total]\n", argv[0], argv[0]);
 		return EXIT_FAILURE;
 	}
 
@@ -71,8 +73,14 @@ int main(int argc, char **argv)
 	iterat = atoi(argv[2]);
 	power  = atof(argv[3]);
 
-	// Fetch number of cores available on machine
+	/* Fetch or use defaults for
+	 * - num cores available
+	 * - our ID in cluster
+	 * - total members in cluster
+	 */
 	cores = argc == 5? atoi(argv[4]) : sysconf(_SC_NPROCESSORS_ONLN); 	// Screw maintainability ;)
+	clust_id = argc == 6? atoi(argv[4]) : 0;
+	clust_total = argc == 6? atoi(argv[5]) : 1;
 
 	// Interlacing is column-based, can't have more workers than columns
 	if (cores > size)
@@ -99,6 +107,8 @@ int main(int argc, char **argv)
 		// Has to be a better way
 		sections[i].core = i;
 		sections[i].cores = cores;
+		sections[i].clust_id = clust_id;
+		sections[i].clust_total = clust_total;
 		sections[i].size = size;
 		sections[i].power = power;
 		sections[i].iterat = iterat;
@@ -131,7 +141,7 @@ int main(int argc, char **argv)
 
 
 	// Output PGM Header
-	printf("P5\n%d\n%d\n255\n",size,size);
+	printf("P5\n%d\n%d\n255\n",size/clust_total,size);
 
 	// Vomit the data segments back onto the screen, deinterlacing
 	// TO DO: look at fwrite performance benefits over putchar
