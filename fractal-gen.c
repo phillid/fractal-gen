@@ -62,10 +62,10 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (argc != 4 && argc != 5 && argc != 6)
+	if (argc != 4 && argc != 5 && argc != 7)
 	{
 		fprintf(stderr, "%s size iterat power [threads]\n"
-		                "%s size iterat power [cluster id] [cluster total]\n", argv[0], argv[0]);
+		                "%s size iterat power threads cluster-id] cluster-total\n", argv[0], argv[0]);
 		return EXIT_FAILURE;
 	}
 
@@ -78,9 +78,9 @@ int main(int argc, char **argv)
 	 * - our ID in cluster
 	 * - total members in cluster
 	 */
-	cores = argc == 5? atoi(argv[4]) : sysconf(_SC_NPROCESSORS_ONLN); 	// Screw maintainability ;)
-	clust_id = argc == 6? atoi(argv[4]) : 0;
-	clust_total = argc == 6? atoi(argv[5]) : 1;
+	cores = (argc == 5 || argc == 7)? atoi(argv[4]) : sysconf(_SC_NPROCESSORS_ONLN); 	// Screw maintainability ;)
+	clust_id = argc == 7? atoi(argv[5]) : 0;
+	clust_total = argc == 7? atoi(argv[6]) : 1;
 
 	// Interlacing is column-based, can't have more workers than columns
 	if (cores > size)
@@ -146,8 +146,12 @@ int main(int argc, char **argv)
 	// Vomit the data segments back onto the screen, deinterlacing
 	// TO DO: look at fwrite performance benefits over putchar
 	for (y = 0; y < size; y++)
-		for (x = 0; x < size; x++)
-			putchar(sections[y%cores].data[(y/cores)*size + x]);
+	{
+		for (x = 0; x < size/clust_total; x++)
+		{
+			putchar(sections[y%cores].data[(y/cores)*(size/clust_total) + x]);
+		}
+	}
 
 	fprintf(stderr, "\nDone\n");
 
