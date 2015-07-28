@@ -39,7 +39,7 @@ void *generate_burning_ship_section(void *section)
 
 	for (y = d->core, b = (d->core*(size_units/size)+top); y < size; b+=((cores*size_units)/size), y+=cores)
 	{
-		for (x = 0, a = left; x < size; a+=(size_units/size), x++)
+		for (x = clust_id, a = (clust_id*(size_units/size)+left); x < size; a+=((clust_total*size_units)/size), x+=clust_total)
 		{
 			z = 0;
 			c = a+I*b;
