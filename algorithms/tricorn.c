@@ -31,27 +31,26 @@ void *generate_tricorn_section(void *section)
 {
 	data_section *d = (data_section*)section;
 	unsigned int x,y,i;
-	int idx = 0;
 	double a,b;
 	double complex z,c;
 	double size_units = 4.f;
 	double top = -2.f;
 	double left = -2.3f;
 
-	for (y = d->core, b = (d->core*(size_units/d->size)+top); y < d->size; b+=((d->cores*size_units)/d->size), y+=d->cores)
+	for (y = d->core, b = (d->core*(size_units/size)+top); y < size; b+=((cores*size_units)/size), y+=cores)
 	{
-		for (x = 0, a = left; x < d->size; a+=(size_units/d->size), x++)
+		for (x = 0, a = left; x < size; a+=(size_units/size), x++)
 		{
 			z = 0;
 			c = a+I*b;
-			for (i = 0; i < d->iterat; i++)
+			for (i = 0; i < iterat; i++)
 			{
 				if (cabsf(z) >= 2)
 					break;
 
-				z = cpow(conj(z) , d->power) + c;
+				z = cpow(conj(z) , power) + c;
 			}
-			d->data[idx++] = (255*i)/d->iterat;
+			d->data[d->idx++] = (255*i)/iterat;
 		}
 	}
 	return NULL;

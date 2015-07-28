@@ -35,9 +35,10 @@ struct section_generator
 
 int main(int argc, char **argv)
 {
-	unsigned int size, iterat, cores, i, x, y;
-	unsigned int clust_id, clust_total;
-	double power;
+	unsigned long x, y, i;
+	double thread_mult;
+	double ram_nice = 0.f;
+	char* ram_unit = NULL;
 	char* bname;
 	data_section* sections;
 	void *(*generator)(void *);
@@ -47,9 +48,9 @@ int main(int argc, char **argv)
 		{ "burning-ship-gen" , &generate_burning_ship_section },
 		{ "burning-ship-lattice-gen" , &generate_burning_ship_lattice_section },
 		{ "tricorn-gen" , &generate_tricorn_section }
-		};
+	};
 
-	// Select correct generator for the fractal type
+	/* Select correct generator for the fractal type */
 	bname = basename(argv[0]);
 	generator = NULL;
 	for (i = 0; i < sizeof(generators)/sizeof(struct section_generator); i++)
@@ -62,10 +63,12 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (argc < 4 || argc > 6)
+	if (argc < 4 || argc > 7)
 	{
-		fprintf(stderr, "%s size iterat power [threads]\n"
-		                "%s size iterat power cluster-id cluster-total\n", argv[0], argv[0]);
+		fprintf(stderr,
+			"%s size iterat power [threads]\n"
+			"%s size iterat power thread_multiplier cluster-id cluster-total\n",
+			argv[0], argv[0]);
 		return EXIT_FAILURE;
 	}
 
@@ -78,52 +81,73 @@ int main(int argc, char **argv)
 	 * - our ID in cluster
 	 * - total members in cluster
 	 */
-	cores = (argc == 5)? atoi(argv[4]) : sysconf(_SC_NPROCESSORS_ONLN); 	// Screw maintainability ;)
-	clust_id = argc == 6? atoi(argv[4]) : 0;
-	clust_total = argc == 6? atoi(argv[5]) : 1;
+	cores = (argc == 5)? atoi(argv[4]) : sysconf(_SC_NPROCESSORS_ONLN);
+	thread_mult = argc == 7? atof(argv[4]) : 1.f;
+	clust_id = argc == 7? atoi(argv[5]) : 0;
+	clust_total = argc == 7? atoi(argv[6]) : 1;
 
-	// Interlacing is column-based, can't have more workers than columns
+	/* Extend number of threads to multiplier value */
+	cores *= thread_mult;
+
+	/* Interlacing is column-based, can't have more workers than columns */
 	if (cores > size)
 	{
 		fprintf(stderr, "WARN: Capping number of threads to image width\n");
 		cores = size;
 	}
 
+	if (size % clust_total != 0)
+	{
+		fprintf(stderr, "ERROR: size must be an exact multiple of clust_total\n");
+		return EXIT_FAILURE;
+	}
+
 	assert(size > 0);
 	assert(iterat > 0);
 	assert(cores > 0);
 
-	// Allocate memory for sections
+	/* Allocate memory for sections */
 	if ((sections = malloc(sizeof(data_section)*cores)) == NULL)
 	{
 		perror("malloc");
 		return EXIT_FAILURE;
 	}
 
-	// Spawn all the threads! Something something interlacing
-	fprintf(stderr, "Spawning %d threads:\n", cores);
+	ram_nice = (size*size)/clust_total;
+	if (ram_nice < 1024)
+		ram_unit = "B";
+	else if (ram_nice < 1024*1024)
+		ram_nice /= 1024, ram_unit = "KiB";
+	else if (ram_nice < 1024*1024*1024)
+		ram_nice /= (1024*1024), ram_unit = "MiB";
+	else
+		ram_nice /= (1024*1024*1024), ram_unit = "GiB";
+
+	fprintf(stderr,
+		"Forecast resource use:\n"
+		" Threads: %d\n"
+		" RAM    : ~%.4f %s\n",
+		cores,
+		ram_nice,
+		ram_unit);
+	/* Spawn all the threads! Something something interlacing */
 	for (i = 0; i < cores; i++)
 	{
-		// Has to be a better way
-		sections[i].core = i;
-		sections[i].cores = cores;
-		sections[i].clust_id = clust_id;
-		sections[i].clust_total = clust_total;
-		sections[i].size = size;
-		sections[i].power = power;
-		sections[i].iterat = iterat;
-
-		// A bit complex, icky, will document later
+		/* A bit complex, icky, will document later */
 		if (i < (size%cores))
-			x = (size*((int)(size/cores)+1));
+			x = (size/cores)+1;
 		else
-			x = (size*(int)(size/cores));
+			x = (size/cores);
+		
+		x *= size;
+		x = ceilf((double)x/clust_total);
 
 		if ((sections[i].data = malloc(x)) == NULL)
 		{
-			fprintf(stderr, "\n");
+			fprintf(stderr, "\nmalloc of %lu bytes failed\n", x);
 			perror("malloc");
-			// Free already allocated chunks of memory
+
+			/* Free already allocated chunks of memory */
 			i--;
 			while(i-- + 1)
 				free(sections[i].data);
@@ -131,31 +155,35 @@ int main(int argc, char **argv)
 			free(sections);
 			return EXIT_FAILURE;
 		}
-		fprintf(stderr, " -> Thread #%d (%d bytes data area)\r", i+1, x);
+		sections[i].core = i;
+		sections[i].datasize = x;
+		fprintf(stderr, " -> Thread %lu\r", i);
 		pthread_create(&sections[i].thread, NULL, generator, &(sections[i]));
 	}
 
-	// Wait for each thread to complete
+	while((x = sections[0].idx) < sections[0].datasize)
+	{
+		fprintf(stderr, "Thread 0: %.4f%%\r", 100.f*(double)x/sections[0].datasize );
+		sleep(1);
+	}
+
+	/* Wait for each thread to complete */
 	for (i = 0; i < cores; i++)
 		pthread_join(sections[i].thread, NULL);
 
 
-	// Output PGM Header
+	/* Output PGM Header */
 	printf("P5\n%d\n%d\n255\n",size/clust_total,size);
 
-	// Vomit the data segments back onto the screen, deinterlacing
-	// TO DO: look at fwrite performance benefits over putchar
+	/* Vomit the data segments back onto the screen, deinterlacing
+	 * TO DO: look at fwrite performance benefits over putchar */
 	for (y = 0; y < size; y++)
-	{
 		for (x = 0; x < size/clust_total; x++)
-		{
 			putchar(sections[y%cores].data[(y/cores)*(size/clust_total) + x]);
-		}
-	}
 
 	fprintf(stderr, "\nDone\n");
 
-	// Free the memory we allocated for point data
+	/* Free the memory we allocated for point data */
 	for (i = 0; i < cores; i++)
 		free(sections[i].data);
 

@@ -31,27 +31,26 @@ void *generate_mandelbrot_section(void *section)
 {
 	data_section *d = (data_section*)section;
 	unsigned int x,y,i;
-	int idx = 0;
 	double a,b;
 	double complex z,c;
 	double size_units = 3.5f;
 	double top = -1.75f;
 	double left = -2.5f;
 
-	for (y = d->core, b = (d->core*(size_units/d->size)+top); y < d->size; b+=((d->cores*size_units)/d->size), y+=d->cores)
+	for (y = d->core, b = (d->core*(size_units/size)+top); y < size; b+=((cores*size_units)/size), y+=cores)
 	{
-		for (x = d->clust_id, a = (d->clust_id*(size_units/d->size)+left); x < d->size; a+=((d->clust_total*size_units)/d->size), x+=d->clust_total)
+		for (x = clust_id, a = (clust_id*(size_units/size)+left); x < size; a+=((clust_total*size_units)/size), x+=clust_total)
 		{
 			z = 0;
 			c = a+I*b;
-			for (i = 0; i < d->iterat; i++)
+			for (i = 0; i < iterat; i++)
 			{
 				if (cabsf(z) >= 2)
 					break;
 
-				z = cpow(z , d->power) + c;
+				z = cpow(z , power) + c;
 			}
-			d->data[idx++] = (255*i)/d->iterat;
+			d->data[d->idx++] = (255*i)/iterat;
 		}
 	}
 	return NULL;

@@ -40,16 +40,20 @@
 
 typedef struct
 {
-	unsigned int core;
-	unsigned int cores;
-	unsigned int clust_id;
-	unsigned int clust_total;
-	unsigned int size;
-	double power;
-	unsigned int iterat;
+	volatile unsigned long idx;
+	unsigned long core;
+	unsigned long datasize;
 	char* data;
 	pthread_t thread;
 } data_section;
+
+unsigned int cores;
+unsigned int clust_id;
+unsigned int clust_total;
+unsigned int size;
+unsigned int iterat;
+double power;
+
 
 #include "algorithms.h"
 
