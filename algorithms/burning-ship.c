@@ -37,9 +37,13 @@ void *generate_burning_ship_section(void *section)
 	double top = -2.2f;
 	double left = -2.2f;
 
-	for (y = d->core, b = (d->core*(size_units/size)+top); y < size; b+=((cores*size_units)/size), y+=cores)
+	/* FIXME document this */
+	b = (d->core*(size_units/size)+top);
+
+	for (y = d->core; y < size; y += cores)
 	{
-		for (x = clust_id, a = (clust_id*(size_units/size)+left); x < size; a+=((clust_total*size_units)/size), x+=clust_total)
+		a = clust_id*(size_units/size)+left; /* FIXME document this */
+		for (x = clust_id; x < size; x+=clust_total)
 		{
 			z = 0;
 			c = a+I*b;
@@ -51,7 +55,9 @@ void *generate_burning_ship_section(void *section)
 				z = cpow( cabsf(crealf(z)) + I*cabsf(cimagf(z)) , power) + c;
 			}
 			d->data[d->idx++] = (255*i)/iterat;
+			a += (clust_total*size_units)/size;
 		}
+		b += (cores*size_units)/size;
 	}
 	return NULL;
 }

@@ -4,13 +4,11 @@ symlinks: fractal-gen
 	ln -sf $< mandelbrot-gen
 	ln -sf $< burning-ship-gen
 	ln -sf $< burning-ship-lattice-gen
-	ln -sf $< tricorn-gen
 
 fractal-gen: fractal-gen.o \
              algorithms/mandelbrot.o \
              algorithms/burning-ship.o \
              algorithms/burning-ship-lattice.o \
-             algorithms/tricorn.o
 
 	$(CC) -o $@ $^ -lm -lpthread
 
@@ -23,7 +21,6 @@ clean: clean-object
 	   mandelbrot-gen \
 	   burning-ship-gen \
 	   burning-ship-lattice-gen \
-	   tricorn-gen \
 	   -f
 
 clean-object:

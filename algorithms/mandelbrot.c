@@ -37,12 +37,17 @@ void *generate_mandelbrot_section(void *section)
 	double top = -1.75f;
 	double left = -2.5f;
 
-	for (y = d->core, b = (d->core*(size_units/size)+top); y < size; b+=((cores*size_units)/size), y+=cores)
+
+	/* FIXME document this */
+	b = (d->core*(size_units/size)+top);
+
+	for (y = d->core; y < size; y += cores)
 	{
-		for (x = clust_id, a = (clust_id*(size_units/size)+left); x < size; a+=((clust_total*size_units)/size), x+=clust_total)
+		a = clust_id*(size_units/size)+left; /* FIXME document this */
+		for (x = clust_id; x < size; x+=clust_total)
 		{
 			z = 0;
-			c = a+I*b;
+			c = a + I*b;
 			for (i = 0; i < iterat; i++)
 			{
 				if (cabsf(z) >= 2)
@@ -51,7 +56,9 @@ void *generate_mandelbrot_section(void *section)
 				z = cpow(z , power) + c;
 			}
 			d->data[d->idx++] = (255*i)/iterat;
+			a += (clust_total*size_units)/size;
 		}
+		b += (cores*size_units)/size;
 	}
 	return NULL;
 }
