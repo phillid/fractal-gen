@@ -1,3 +1,5 @@
+CFLAGS += -Wall -Wextra -Werror
+LDFLAGS += -lm -lpthread
 all: fractal-gen symlinks
 
 symlinks: fractal-gen
@@ -10,12 +12,7 @@ fractal-gen: fractal-gen.o \
              algorithms/burning-ship.o \
              algorithms/burning-ship-lattice.o \
 
-	$(CC) -o $@ $^ -lm -lpthread
 
-%.o: %.c
-	$(CC) -c -o $@ $< -Wall -Wextra -Werror
-
-.PHONY: all clean clean-object symlinks
 clean: clean-object
 	rm fractal-gen \
 	   mandelbrot-gen \
@@ -25,3 +22,5 @@ clean: clean-object
 
 clean-object:
 	rm -fv *.o **/*.o
+
+.PHONY: all clean clean-object symlinks
