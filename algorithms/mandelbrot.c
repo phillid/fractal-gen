@@ -25,7 +25,7 @@
  * SUCH DAMAGE.
  */
 
-#include "../fractal-gen.h"
+#include "common.h"
 
 void *generate_mandelbrot_section(void *section)
 {
@@ -50,7 +50,7 @@ void *generate_mandelbrot_section(void *section)
 			c = a + I*b;
 			for (i = 0; i < iterat; i++)
 			{
-				if (cabsf(z) >= 2)
+				if (cabs(z) >= 2)
 					break;
 
 				z = cpow(z , power) + c;

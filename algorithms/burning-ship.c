@@ -25,7 +25,7 @@
  * SUCH DAMAGE.
  */
 
-#include "../fractal-gen.h"
+#include "common.h"
 
 void *generate_burning_ship_section(void *section)
 {
@@ -49,10 +49,10 @@ void *generate_burning_ship_section(void *section)
 			c = a+I*b;
 			for (i = 0; i < iterat; i++)
 			{
-				if (cabsf(z) >= 2)
+				if (cabs(z) >= 2)
 					break;
 
-				z = cpow( cabsf(crealf(z)) + I*cabsf(cimagf(z)) , power) + c;
+				z = cpow( fabs(creal(z)) + I*fabs(cimag(z)) , power) + c;
 			}
 			d->data[d->idx++] = (255*i)/iterat;
 			a += (clust_total*size_units)/size;

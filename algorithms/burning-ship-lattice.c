@@ -25,14 +25,18 @@
  * SUCH DAMAGE.
  */
 
-#include "../fractal-gen.h"
+#include "common.h"
 
 void *generate_burning_ship_lattice_section(void *section)
 {
 	data_section *d = (data_section*)section;
-	unsigned int x,y,i;
-	double a,b;
-	double complex z,c;
+	unsigned int x = 0;
+	unsigned int y = 0;
+	unsigned int i = 0;;
+	double a = 0;
+	double b = 0;
+	double complex z = 0;
+	double complex c = 0;
 	double size_units = 0.09f;
 	double top = -0.082f;
 	double left = -1.8f;
@@ -49,10 +53,10 @@ void *generate_burning_ship_lattice_section(void *section)
 			c = a+I*b;
 			for (i = 0; i < iterat; i++)
 			{
-				if (cabsf(z) >= 2)
+				if (cabs(z) >= 2)
 					break;
 
-				z = cpow( cabsf(crealf(z)) + I*cabsf(cimagf(z)) , power) + c;
+				z = cpow( fabs(creal(z)) + I*fabs(cimag(z)) , power) + c;
 			}
 			d->data[d->idx++] = (255*i)/iterat;
 			a += (clust_total*size_units)/size;
