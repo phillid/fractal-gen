@@ -27,35 +27,45 @@
 
 #include "fractal-gen.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <libgen.h>
+#include <unistd.h>
+#include <math.h>
+#include <string.h>
+
 struct section_generator
 {
 	char *executable_name;
-	void *(*generator)(void *);
+	generator_func generator;
 };
+
+static struct section_generator generators[] = {
+	{ "mandelbrot-gen" , &generate_mandelbrot_section },
+	{ "burning-ship-gen" , &generate_burning_ship_section },
+	{ "burning-ship-lattice-gen" , &generate_burning_ship_lattice_section }
+};
+
+
+/* FIXME put into header */
+double thread_mult = 0.f; /* number to multiply available cores by to get thread count */
+
 
 int main(int argc, char **argv)
 {
-	unsigned long x, y, i;
-	double thread_mult;
-	double ram_nice = 0.f;
-	char* ram_unit = NULL;
-	char* bname;
-	data_section* sections;
-	void *(*generator)(void *);
-
-	struct section_generator generators[] = {
-		{ "mandelbrot-gen" , &generate_mandelbrot_section },
-		{ "burning-ship-gen" , &generate_burning_ship_section },
-		{ "burning-ship-lattice-gen" , &generate_burning_ship_lattice_section },
-		{ "tricorn-gen" , &generate_tricorn_section }
-	};
+	unsigned long x = 0;
+	unsigned long y = 0;
+	unsigned long i = 0;
+	double ram_nice = 0.f; /* Forecast RAM usage, divided down to < 1024 */
+	char* ram_unit = NULL; /* Unit for ram_nice */
+	char* bname = NULL;
+	data_section* sections = NULL;
+	generator_func generator = NULL;
 
 	/* Select correct generator for the fractal type */
 	bname = basename(argv[0]);
-	generator = NULL;
-	for (i = 0; i < sizeof(generators)/sizeof(struct section_generator); i++)
-		if (strcmp(bname, generators[i].executable_name) == 0)
-			generator = generators[i].generator;
+	generator = select_generator(bname);
 
 	if (generator == NULL)
 	{
@@ -63,48 +73,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (argc < 4 || argc > 7)
-	{
-		fprintf(stderr,
-			"%s size iterat power [threads]\n"
-			"%s size iterat power thread_multiplier cluster-id cluster-total\n",
-			argv[0], argv[0]);
+	if (!args_parse_okay(argc, (const char**)argv))
 		return EXIT_FAILURE;
-	}
-
-	size   = atoi(argv[1]);
-	iterat = atoi(argv[2]);
-	power  = atof(argv[3]);
-
-	/* Fetch or use defaults for
-	 * - num cores available
-	 * - our ID in cluster
-	 * - total members in cluster
-	 */
-	cores = (argc == 5)? atoi(argv[4]) : sysconf(_SC_NPROCESSORS_ONLN);
-	thread_mult = argc == 7? atof(argv[4]) : 1.f;
-	clust_id = argc == 7? atoi(argv[5]) : 0;
-	clust_total = argc == 7? atoi(argv[6]) : 1;
-
-	/* Extend number of threads to multiplier value */
-	cores *= thread_mult;
-
-	/* Interlacing is column-based, can't have more workers than columns */
-	if (cores > size)
-	{
-		fprintf(stderr, "WARN: Capping number of threads to image width\n");
-		cores = size;
-	}
-
-	if (size % clust_total != 0)
-	{
-		fprintf(stderr, "ERROR: size must be an exact multiple of clust_total\n");
-		return EXIT_FAILURE;
-	}
-
-	assert(size > 0);
-	assert(iterat > 0);
-	assert(cores > 0);
 
 	/* Allocate memory for sections */
 	if ((sections = malloc(sizeof(data_section)*cores)) == NULL)
@@ -189,4 +159,79 @@ int main(int argc, char **argv)
 
 	free(sections);
 	return 0;
+}
+
+
+/* FIXME use getopt */
+bool args_parse_okay(const int argc, const char **argv)
+{
+	if (argc < 4 || argc > 7)
+	{
+		fprintf(stderr,
+			"%s size iterat power [threads]\n"
+			"%s size iterat power thread_multiplier cluster-id cluster-total\n",
+			argv[0], argv[0]);
+		return false;
+	}
+
+	size   = atoi(argv[1]);
+	iterat = atoi(argv[2]);
+	power  = atof(argv[3]);
+
+	/* Fetch or use defaults for
+	 * - num cores available
+	 * - our ID in cluster
+	 * - total members in cluster
+	 * FIXME this stuff is horrible, will disappear with getopt */
+	cores = (argc == 5)? atoi(argv[4]) : sysconf(_SC_NPROCESSORS_ONLN);
+	thread_mult = argc == 7? atof(argv[4]) : 1.f;
+	clust_id = argc == 7? atoi(argv[5]) : 0;
+	clust_total = argc == 7? atoi(argv[6]) : 1;
+
+	/* Extend number of threads to multiplier value */
+	cores *= thread_mult;
+
+	/* Interlacing is column-based, can't have more workers than columns */
+	if (cores > size)
+	{
+		cores = size;
+		fprintf(stderr, "WARN: Capping number of threads to image size (%d)\n", cores);
+	}
+
+	if (size % clust_total != 0)
+	{
+		fprintf(stderr, "ERROR: image size must be an exact multiple of clust_total\n");
+		return false;
+	}
+
+	/* FIXME replace assertions with useful messages */
+	if (size <= 0)
+	{
+		fprintf(stderr, "size should be positive\n");
+		return false;
+	}
+
+	if (iterat <= 0)
+	{
+		fprintf(stderr, "iteration count should be positive\n");
+		return false;
+	}
+
+	if (cores <= 0)
+	{
+		fprintf(stderr, "core counts should be positive\n");
+		return false;
+	}
+	return true;
+}
+
+
+generator_func select_generator(const char* name)
+{
+	unsigned long i = 0;
+	for (i = 0; i < sizeof(generators)/sizeof(struct section_generator); i++)
+		if (strcmp(name, generators[i].executable_name) == 0)
+			return generators[i].generator;
+
+	return NULL;
 }

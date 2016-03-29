@@ -28,15 +28,8 @@
 #ifndef FRACTAL_GEN_H
 #define FRACTAL_GEN_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <libgen.h>
-#include <complex.h>
-#include <math.h>
-#include <unistd.h>
+#include <stdbool.h>
 #include <pthread.h>
-#include <assert.h>
 
 typedef struct
 {
@@ -53,6 +46,12 @@ unsigned int clust_total;
 unsigned int size;
 unsigned int iterat;
 double power;
+
+
+typedef void* (*generator_func)(void *);
+
+bool args_parse_okay(const int argc, const char **argv);
+generator_func select_generator(const char* name);
 
 
 #include "algorithms.h"
