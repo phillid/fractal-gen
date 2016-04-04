@@ -204,7 +204,6 @@ bool args_parse_okay(const int argc, const char **argv)
 		return false;
 	}
 
-	/* FIXME replace assertions with useful messages */
 	if (size <= 0)
 	{
 		fprintf(stderr, "size should be positive\n");
