@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 			x = (size/cores)+1;
 		else
 			x = (size/cores);
-		
+
 		x *= size;
 		x = ceilf((double)x/clust_total);
 
