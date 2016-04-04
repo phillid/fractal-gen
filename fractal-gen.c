@@ -50,7 +50,7 @@ static struct section_generator generators[] = {
 
 /* FIXME put into header */
 double thread_mult = 0.f; /* number to multiply available cores by to get thread count */
-
+char *argv0 = NULL;
 
 int main(int argc, char **argv)
 {
@@ -63,6 +63,9 @@ int main(int argc, char **argv)
 	data_section* sections = NULL;
 	generator_func generator = NULL;
 
+	/* who are we? */
+	argv0 = argv[0];
+
 	/* Select correct generator for the fractal type */
 	bname = basename(argv[0]);
 	generator = select_generator(bname);
@@ -73,8 +76,11 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (!args_parse_okay(argc, (const char**)argv))
+	if (!args_parse_okay(argc, argv))
+	{
+		show_help();
 		return EXIT_FAILURE;
+	}
 
 	/* Allocate memory for sections */
 	if ((sections = malloc(sizeof(data_section)*cores)) == NULL)
@@ -162,31 +168,35 @@ int main(int argc, char **argv)
 }
 
 
-/* FIXME use getopt */
-bool args_parse_okay(const int argc, const char **argv)
+bool args_parse_okay(int argc, char **argv)
 {
-	if (argc < 4 || argc > 7)
+	char opt = '\0';
+
+	/* first things first: preload default values */
+	cores = sysconf(_SC_NPROCESSORS_ONLN);
+	thread_mult = 1;
+	clust_id = 0;
+	clust_total = 1;
+
+	while ( (opt = getopt(argc, argv, "s:i:e:c:t:N:T")) != -1 )
 	{
-		fprintf(stderr,
-			"%s size iterat power [threads]\n"
-			"%s size iterat power thread_multiplier cluster-id cluster-total\n",
-			argv[0], argv[0]);
-		return false;
+		switch (opt)
+		{
+			case 's': size = atoi(optarg); break;
+			case 'i': iterat = atoi(optarg); break;
+			case 'e': power = atoi(optarg); break;
+			case 'c': cores = atoi(optarg); break;
+			case 't': thread_mult = atoi(optarg); break;
+			case 'N': clust_id = atoi(optarg); break;
+			case 'T': clust_total = atoi(optarg); break;
+			/* redundant case for '?', but explicitness is best */
+			case '?':
+			default:
+				show_help();
+				return false;
+				break;
+		}
 	}
-
-	size   = atoi(argv[1]);
-	iterat = atoi(argv[2]);
-	power  = atof(argv[3]);
-
-	/* Fetch or use defaults for
-	 * - num cores available
-	 * - our ID in cluster
-	 * - total members in cluster
-	 * FIXME this stuff is horrible, will disappear with getopt */
-	cores = (argc == 5)? atoi(argv[4]) : sysconf(_SC_NPROCESSORS_ONLN);
-	thread_mult = argc == 7? atof(argv[4]) : 1.f;
-	clust_id = argc == 7? atoi(argv[5]) : 0;
-	clust_total = argc == 7? atoi(argv[6]) : 1;
 
 	/* Extend number of threads to multiplier value */
 	cores *= thread_mult;
@@ -233,4 +243,12 @@ generator_func select_generator(const char* name)
 			return generators[i].generator;
 
 	return NULL;
+}
+
+void show_help()
+{
+	fprintf(stderr,
+			"%s size iterat power [threads]\n"
+			"%s size iterat power thread_multiplier cluster-id cluster-total\n",
+			argv0, argv0);
 }
