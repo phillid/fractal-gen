@@ -6,7 +6,9 @@ This is a tiny program which will output a binary [PGM](https://wikipedia.org/wi
 Syntax
 ------
 
-    ./mandelbrot-gen <size> <max_iterations> <power> [threads] > output.pgm
+    ./mandelbrot-gen -c size -i max_iterations -e exponent \
+                     [-c cores] [-t thread_multiplier]
+                     [-N cluster-id -T cluster-total] > output.pgm
 
 Also check out the other algorithms like `tricorn-gen` and `burning-ship-gen`.
 You might then want to consider using a tool such as ImageMagick to then convert the (large) output file into something more sane like a PNG.

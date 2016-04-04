@@ -192,7 +192,6 @@ bool args_parse_okay(int argc, char **argv)
 			/* redundant case for '?', but explicitness is best */
 			case '?':
 			default:
-				show_help();
 				return false;
 				break;
 		}
@@ -248,7 +247,8 @@ generator_func select_generator(const char* name)
 void show_help()
 {
 	fprintf(stderr,
-			"%s size iterat power [threads]\n"
-			"%s size iterat power thread_multiplier cluster-id cluster-total\n",
-			argv0, argv0);
+			"%s -s size -i iterat -e exponent\n"
+			"        [-c cores] [-t thread_multiplier]\n"
+			"        [-N cluster-id -T cluster-total]\n",
+			argv0);
 }
