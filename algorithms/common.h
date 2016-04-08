@@ -1,6 +1,6 @@
 /*
  * Part of fractal-gen - Generate iteration-based fractals in PNM format
- * Copyright (c) 2015 David Phillips <dbphillipsnz@gmail.com>
+ * Copyright (c) 2016 David Phillips <dbphillipsnz@gmail.com>
  * All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
