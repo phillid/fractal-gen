@@ -163,7 +163,10 @@ bool args_parse_okay(int argc, char **argv)
 {
 	char opt = '\0';
 
-	/* first things first: preload default values */
+	/* first things first: preload default or initial values */
+	size = 0;
+	iterat = 0;
+	power = 2;
 	cores = sysconf(_SC_NPROCESSORS_ONLN);
 	thread_mult = 1;
 	clust_id = 0;
@@ -238,7 +241,7 @@ generator_func select_generator(const char* name)
 void show_help()
 {
 	fprintf(stderr,
-			"%s -s size -i iterat -e exponent\n"
+			"%s -s size -i iterat [-e exponent]\n"
 			"        [-c cores] [-t thread_multiplier]\n"
 			"        [-N cluster-id -T cluster-total]\n",
 			argv0);
