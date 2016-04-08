@@ -46,8 +46,8 @@ unsigned int clust_total;
 unsigned int size;
 unsigned int iterat;
 double power;
-double thread_mult = 0.f; /* number to multiply available cores by to get thread count */
-char *argv0 = NULL;
+double thread_mult; /* number to multiply available cores by to get thread count */
+char *argv0;
 
 typedef void* (*generator_func)(void *);
 
