@@ -26,6 +26,7 @@
  */
 
 #include "fractal-gen.h"
+#include "generator.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,22 +36,12 @@
 #include <math.h>
 #include <string.h>
 
-struct section_generator
-{
-	char *executable_name;
-	generator_func generator;
-};
-
 static struct section_generator generators[] = {
 	{ "mandelbrot-gen" , &generate_mandelbrot_section },
 	{ "burning-ship-gen" , &generate_burning_ship_section },
 	{ "burning-ship-lattice-gen" , &generate_burning_ship_lattice_section }
 };
 
-
-/* FIXME put into header */
-double thread_mult = 0.f; /* number to multiply available cores by to get thread count */
-char *argv0 = NULL;
 
 int main(int argc, char **argv)
 {
