@@ -1,10 +1,8 @@
-Fractal Gen
-==========
+# Fractal Gen
 This is a tiny program which will output a binary [PGM](https://wikipedia.org/wiki/Netpbm_format#PGM_example) format square image of a mandelbrot or burning ship set.
 
 
-Syntax
-------
+## Syntax
 
 	./mandelbrot-gen -c size -i max_iterations [-e exponent] \
 	                 [-c cores] [-t thread_multiplier]
@@ -15,8 +13,7 @@ You might then want to consider using a tool such as ImageMagick to then convert
 For the clich&eacute; set you'll want to keep the exponent at 2.
 For more info on the exponent, read through [Wikipedia's fine article](http://wikipedia.org/wiki/Mandelbrot_set).
 
-Notes
------
+## Notes
 
 1. By default, this has your CPU over a barrel.
    It spawns as many threads as you have cores, so have fun with that.
