@@ -194,6 +194,18 @@ bool args_parse_okay(int argc, char **argv)
 	/* Extend number of threads to multiplier value */
 	cores *= thread_mult;
 
+	if (size <= 0)
+	{
+		fprintf(stderr, "ERROR: size must be positive\n");
+		return false;
+	}
+
+	if (iterat <= 0)
+	{
+		fprintf(stderr, "ERROR: max iteration count must be positive\n");
+		return false;
+	}
+
 	/* Interlacing is column-based, can't have more workers than columns */
 	if (cores > size)
 	{
@@ -207,21 +219,9 @@ bool args_parse_okay(int argc, char **argv)
 		return false;
 	}
 
-	if (size <= 0)
-	{
-		fprintf(stderr, "size should be positive\n");
-		return false;
-	}
-
-	if (iterat <= 0)
-	{
-		fprintf(stderr, "iteration count should be positive\n");
-		return false;
-	}
-
 	if (cores <= 0)
 	{
-		fprintf(stderr, "core counts should be positive\n");
+		fprintf(stderr, "ERROR: core counts should be positive\n");
 		return false;
 	}
 	return true;
