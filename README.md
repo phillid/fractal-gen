@@ -6,7 +6,7 @@ This is a tiny program which will output a binary [PGM](https://wikipedia.org/wi
 Syntax
 ------
 
-    ./mandelbrot-gen -c size -i max_iterations -e exponent \
+    ./mandelbrot-gen -c size -i max_iterations [-e exponent] \
                      [-c cores] [-t thread_multiplier]
                      [-N cluster-id -T cluster-total] > output.pgm
 
