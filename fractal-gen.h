@@ -25,9 +25,6 @@
  * SUCH DAMAGE.
  */
 
-#ifndef FRACTAL_GEN_H
-#define FRACTAL_GEN_H
-
 #include <stdbool.h>
 #include <pthread.h>
 
@@ -56,5 +53,3 @@ generator_func select_generator(const char* name);
 void show_help();
 
 #include "algorithms.h"
-
-#endif

@@ -25,13 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ALGORITHMS_COMMON_H
-#define ALGORITHMS_COMMON_H
-
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
 
 #include "../fractal-gen.h"
-
-#endif
