@@ -48,7 +48,7 @@ char *argv0;
 
 typedef void* (*generator_func)(void *);
 
-bool args_parse_okay(int argc, char **argv);
+int parse_args(int argc, char **argv);
 generator_func select_generator(const char* name);
 void show_help();
 

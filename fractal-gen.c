@@ -30,7 +30,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <libgen.h>
 #include <unistd.h>
 #include <math.h>
@@ -64,20 +63,20 @@ int main(int argc, char **argv)
 	if (generator == NULL)
 	{
 		fprintf(stderr, "Don't call this directly, call a symlink to me\n");
-		return EXIT_FAILURE;
+		return 1;
 	}
 
-	if (!args_parse_okay(argc, argv))
+	if (parse_args(argc, argv))
 	{
 		show_help();
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Allocate memory for sections */
 	if ((sections = malloc(sizeof(data_section)*cores)) == NULL)
 	{
 		perror("malloc");
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	ram_nice = (size*size)/clust_total;
@@ -120,7 +119,7 @@ int main(int argc, char **argv)
 				free(sections[i].data);
 
 			free(sections);
-			return EXIT_FAILURE;
+			return 1;
 		}
 		sections[i].core = i;
 		sections[i].datasize = x;
@@ -159,7 +158,7 @@ int main(int argc, char **argv)
 }
 
 
-bool args_parse_okay(int argc, char **argv)
+int parse_args(int argc, char **argv)
 {
 	char opt = '\0';
 
@@ -186,7 +185,7 @@ bool args_parse_okay(int argc, char **argv)
 			/* redundant case for '?', but explicitness is best */
 			case '?':
 			default:
-				return false;
+				return 1;
 				break;
 		}
 	}
@@ -197,13 +196,13 @@ bool args_parse_okay(int argc, char **argv)
 	if (size <= 0)
 	{
 		fprintf(stderr, "ERROR: size must be positive\n");
-		return false;
+		return 1;
 	}
 
 	if (iterat <= 0)
 	{
 		fprintf(stderr, "ERROR: max iteration count must be positive\n");
-		return false;
+		return 1;
 	}
 
 	/* Interlacing is column-based, can't have more workers than columns */
@@ -216,15 +215,15 @@ bool args_parse_okay(int argc, char **argv)
 	if (size % clust_total != 0)
 	{
 		fprintf(stderr, "ERROR: image size must be an exact multiple of clust_total\n");
-		return false;
+		return 1;
 	}
 
 	if (cores <= 0)
 	{
 		fprintf(stderr, "ERROR: core counts should be positive\n");
-		return false;
+		return 1;
 	}
-	return true;
+	return 0;
 }
 
 
