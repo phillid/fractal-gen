@@ -62,7 +62,8 @@ int main(int argc, char **argv)
 
 	if (generator == NULL)
 	{
-		fprintf(stderr, "Don't call this directly, call a symlink to me\n");
+		fprintf(stderr, "Unknown fractal '%s' (perhaps try running symlink to me)\n",
+			bname);
 		return 1;
 	}
 
