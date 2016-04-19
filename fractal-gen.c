@@ -172,6 +172,10 @@ int parse_args(int argc, char **argv)
 	clust_id = 0;
 	clust_total = 1;
 
+	/* bail out early if no arguments are supplied */
+	if (argc <= 1)
+		return 1;
+
 	while ( (opt = getopt(argc, argv, "s:i:e:c:t:N:T")) != -1 )
 	{
 		switch (opt)
