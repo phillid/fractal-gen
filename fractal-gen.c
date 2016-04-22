@@ -176,15 +176,15 @@ int parse_args(int argc, char **argv)
 	if (argc <= 1)
 		return 1;
 
-	while ( (opt = getopt(argc, argv, "s:i:e:c:t:N:T")) != -1 )
+	while ( (opt = getopt(argc, argv, "s:i:e:c:t:N:T:")) != -1 )
 	{
 		switch (opt)
 		{
 			case 's': size = atoi(optarg); break;
 			case 'i': iterat = atoi(optarg); break;
-			case 'e': power = atoi(optarg); break;
+			case 'e': power = atof(optarg); break;
 			case 'c': cores = atoi(optarg); break;
-			case 't': thread_mult = atoi(optarg); break;
+			case 't': thread_mult = atof(optarg); break;
 			case 'N': clust_id = atoi(optarg); break;
 			case 'T': clust_total = atoi(optarg); break;
 			/* redundant case for '?', but explicitness is best */
