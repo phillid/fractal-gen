@@ -221,7 +221,13 @@ int parse_args(int argc, char **argv)
 		return 1;
 	}
 
-	/* Interlacing is column-based, can't have more workers than columns */
+	if (clust_id >= clust_total)
+	{
+		fprintf(stderr, "WARN: Node ID cannot be >= node count\n");
+		return 1;
+	}
+
+	/* Interlacing is row-based, can't have more workers than columns */
 	if (cores > size)
 	{
 		cores = size;
