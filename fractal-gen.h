@@ -32,6 +32,7 @@ typedef struct
 {
 	volatile unsigned long idx;
 	unsigned long core;
+	unsigned long width;
 	unsigned long datasize;
 	char* data;
 	pthread_t thread;

@@ -45,12 +45,15 @@ static struct section_generator generators[] = {
 int main(int argc, char **argv)
 {
 	unsigned long x = 0;
+	unsigned long width = 0;
+	size_t toalloc = 0;
 	unsigned long y = 0;
 	unsigned long i = 0;
 	double ram_nice = 0.f; /* Forecast RAM usage, divided down to < 1024 */
 	char* ram_unit = NULL; /* Unit for ram_nice */
 	char* bname = NULL;
 	data_section* sections = NULL;
+	data_section *s = NULL;
 	generator_func generator = NULL;
 
 	/* who are we? */
@@ -102,16 +105,16 @@ int main(int argc, char **argv)
 	{
 		/* A bit complex, icky, will document later */
 		if (i < (size%cores))
-			x = (size/cores)+1;
+			width = (size/cores)+1;
 		else
-			x = (size/cores);
+			width = (size/cores);
 
-		x *= size;
-		x = ceilf((double)x/clust_total);
+		toalloc = width*size;
+		toalloc = ceilf((double)toalloc/clust_total);
 
-		if ((sections[i].data = malloc(x)) == NULL)
+		if ((sections[i].data = malloc(toalloc)) == NULL)
 		{
-			fprintf(stderr, "\nmalloc of %lu bytes failed\n", x);
+			fprintf(stderr, "\nmalloc of %lu bytes failed\n", toalloc);
 			perror("malloc");
 
 			/* Free already allocated chunks of memory */
@@ -123,14 +126,18 @@ int main(int argc, char **argv)
 			return 1;
 		}
 		sections[i].core = i;
-		sections[i].datasize = x;
+		sections[i].width = width;
+		sections[i].datasize = toalloc;
 		fprintf(stderr, " -> Thread %lu\r", i);
 		pthread_create(&sections[i].thread, NULL, generator, &(sections[i]));
 	}
 
-	while((x = sections[0].idx) < sections[0].datasize)
+	s = &(sections[cores-1]);
+	while((x = s->idx) < s->datasize)
 	{
-		fprintf(stderr, "Thread 0: %.4f%%\r", 100.f*(double)x/sections[0].datasize );
+		fprintf(stderr, "Thread %d: %.4f%%\r",
+		        cores-1,
+		        100.f*(double)x/s->datasize);
 		sleep(1);
 	}
 
@@ -140,14 +147,18 @@ int main(int argc, char **argv)
 
 
 	/* Output PGM Header */
-	printf("P5\n%d\n%d\n255\n",size/clust_total,size);
+	printf("P5\n%d\n%d\n255\n",size,size/clust_total);
 
-	/* Vomit the data segments back onto the screen, deinterlacing
-	 * TO DO: look at fwrite performance benefits over putchar */
-	for (y = 0; y < size; y++)
-		for (x = 0; x < size/clust_total; x++)
-			putchar(sections[y%cores].data[(y/cores)*(size/clust_total) + x]);
-
+	/* Vomit the data segments onto stdout, interlacing frames from threads
+	 * FIXME: look at buffering if at all possible */
+	for (y = 0; y < size/clust_total; y++)
+	{
+		for (x = 0; x < size; x++)
+		{
+			s = &(sections[x%cores]);
+			putchar(s->data[y*(s->width) + x/cores]);
+		}
+	}
 	fprintf(stderr, "\nDone\n");
 
 	/* Free the memory we allocated for point data */

@@ -42,12 +42,12 @@ void *generate_burning_ship_lattice_section(void *section)
 	double left = -1.8f;
 
 	/* FIXME document this */
-	b = (d->core*(size_units/size)+top);
+	b = clust_id*(size_units/size)+top; /* FIXME document this */
 
-	for (y = d->core; y < size; y += cores)
+	for (y = clust_id; y < size; y+=clust_total)
 	{
-		a = clust_id*(size_units/size)+left; /* FIXME document this */
-		for (x = clust_id; x < size; x+=clust_total)
+		a = d->core*(size_units/size)+left;
+		for (x = d->core; x < size; x += cores)
 		{
 			z = 0;
 			c = a+I*b;
@@ -59,9 +59,9 @@ void *generate_burning_ship_lattice_section(void *section)
 				z = cpow( fabs(creal(z)) + I*fabs(cimag(z)) , power) + c;
 			}
 			d->data[d->idx++] = (255*i)/iterat;
-			a += (clust_total*size_units)/size;
+			a += cores*(size_units/size);
 		}
-		b += (cores*size_units)/size;
+		b += clust_total*(size_units/size);
 	}
 	return NULL;
 }
