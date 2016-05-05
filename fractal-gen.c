@@ -132,10 +132,11 @@ int main(int argc, char **argv)
 		pthread_create(&sections[i].thread, NULL, generator, &(sections[i]));
 	}
 
-	s = &(sections[0]);
+	s = &(sections[cores-1]);
 	while((x = s->idx) < s->datasize)
 	{
-		fprintf(stderr, "Thread 0: %.4f%%\r",
+		fprintf(stderr, "Thread %d: %.4f%%\r",
+		        cores-1,
 		        100.f*(double)x/s->datasize);
 		sleep(1);
 	}
