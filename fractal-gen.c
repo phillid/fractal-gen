@@ -80,13 +80,12 @@ int main(int argc, char **argv)
 	}
 
 	/* Allocate memory for sections */
-/*	if ((sections = malloc(sizeof(data_section)*cores)) == NULL)*/
-	sections = mmap(NULL, sizeof(data_section)*cores, PROT_READ|PROT_WRITE,
-	MAP_SHARED|MAP_ANONYMOUS, -1, 0);
-/*	{
+	if ((sections = mmap(NULL, sizeof(data_section)*cores, PROT_READ|PROT_WRITE,
+	MAP_SHARED|MAP_ANONYMOUS, -1, 0)) == (data_section*)MAP_FAILED)
+	{
 		perror("mmap");
 		return 1;
-	}*/
+	}
 
 	ram_nice = (size*size)/clust_total;
 	if (ram_nice < 1024)
