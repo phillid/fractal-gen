@@ -32,7 +32,9 @@
 #include <stdlib.h>
 #include <libgen.h>
 #include <unistd.h>
+#include <signal.h>
 #include <math.h>
+#include <sys/mman.h>
 #include <string.h>
 
 static struct section_generator generators[] = {
@@ -55,6 +57,7 @@ int main(int argc, char **argv)
 	data_section* sections = NULL;
 	data_section *s = NULL;
 	generator_func generator = NULL;
+	pid_t child = 0;
 
 	/* who are we? */
 	argv0 = argv[0];
@@ -77,11 +80,13 @@ int main(int argc, char **argv)
 	}
 
 	/* Allocate memory for sections */
-	if ((sections = malloc(sizeof(data_section)*cores)) == NULL)
-	{
-		perror("malloc");
+/*	if ((sections = malloc(sizeof(data_section)*cores)) == NULL)*/
+	sections = mmap(NULL, sizeof(data_section)*cores, PROT_READ|PROT_WRITE,
+	MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+/*	{
+		perror("mmap");
 		return 1;
-	}
+	}*/
 
 	ram_nice = (size*size)/clust_total;
 	if (ram_nice < 1024)
@@ -122,7 +127,7 @@ int main(int argc, char **argv)
 			while(i-- + 1)
 				free(sections[i].data);
 
-			free(sections);
+			munmap(sections, sizeof(data_section)*cores);
 			return 1;
 		}
 		sections[i].core = i;
@@ -133,18 +138,28 @@ int main(int argc, char **argv)
 	}
 
 	s = &(sections[cores-1]);
-	while((x = s->idx) < s->datasize)
-	{
-		fprintf(stderr, "Thread %d: %.4f%%\r",
-		        cores-1,
-		        100.f*(double)x/s->datasize);
-		sleep(1);
-	}
 
+	switch (child = fork())
+	{
+		case 0:
+			while((x = s->idx) < s->datasize)
+			{
+				fprintf(stderr, "Thread %d: %.4f%%\r",
+						cores-1,
+						100.f*(double)x/s->datasize);
+				sleep(1);
+			}
+			break;
+		case -1:
+			perror("progress thread fork");
+		default:
+			break;
+	}
 	/* Wait for each thread to complete */
 	for (i = 0; i < cores; i++)
 		pthread_join(sections[i].thread, NULL);
 
+	kill(child, SIGKILL);
 
 	/* Output PGM Header */
 	printf("P5\n%d\n%d\n255\n",size,size/clust_total);
@@ -165,7 +180,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < cores; i++)
 		free(sections[i].data);
 
-	free(sections);
+	munmap(sections, sizeof(data_section)*cores);
 	return 0;
 }
 
