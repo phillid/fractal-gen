@@ -9,9 +9,10 @@ This is a tiny program which will output a binary [PGM](https://wikipedia.org/wi
 	                 [-N cluster-id -T cluster-total] > output.pgm
 
 Also check out the other algorithms like `tricorn-gen` and `burning-ship-gen`.
-You might then want to consider using a tool such as ImageMagick to then convert the (large) output file into something more sane like a PNG.
-For the clich&eacute; set you'll want to keep the exponent at 2.
-For more info on the exponent, read through [Wikipedia's fine article](http://wikipedia.org/wiki/Mandelbrot_set).
+You might then want to consider using a tool such as ImageMagick to then
+convert the (large) output file into something more sane like a PNG.
+For the cliché set you'll want to keep the exponent at 2.
+
 
 ### Options in detail
 
@@ -35,11 +36,13 @@ Also note that `-N` should always be used together with `-T`.
 	-T cluster_total - 0 < Integer <= size. Total count of worker instances in
 	                   this cluster.
 
+
 ## Clustering
 
 This program allows workload for an image to be spread across multiple
 instances of the program. This means, for example, that you can parallel the
 computation on an image between multiple computers.
+
 
 ### Example
 
@@ -54,18 +57,17 @@ in order to perhaps halve the computation time:
 
 At the heart of it, each instance will only calculate half of the image. This
 is achieved by (in this case) getting the instance with ID 0 to work on
-the 1st, 3rd, 5th, and other odd numbered columns, while the instance with ID 1
-will work on the columns in between. To perhaps point out the obvious(?),
+the 1st, 3rd, 5th, and other odd numbered rows, while the instance with ID 1
+will work on the rows in between. To point out the (perhaps) obvious,
 interlacing is used in a bid to spread the workload more evenly across cluster
 members.
 
-This will result in two separate pgm files, each 10000x20000 pixels.
-They must be vertically interlaced in order to form the whole desired image.
+This will result in two separate pgm files, each 20000x10000 pixels.
+They must be horizontally interlaced in order to form the whole desired image.
 This extends to any number of cluster members less than or equal to the image
-size, since the interlacing can only split by column, not row.
+size, since the interlacing can only split by row, not column.
 
-I currently have a tool that I use to interlace the resultant images. I'm
-working on polishing it so it is publish-worthy.
+Check out [pgm-interlace][pgm-interlace] for a tool to do this job.
 
 ## Notes
 
@@ -74,3 +76,5 @@ working on polishing it so it is publish-worthy.
    You can specify the number of threads you want it to (see syntax).
 
 2. PGMs are grayscale, so you might want to tint it or apply a pallete of sort.
+
+[pgm-interlace]: https://github.com/phillid/pgm-interlace/
