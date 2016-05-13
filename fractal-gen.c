@@ -43,6 +43,10 @@ static struct section_generator generators[] = {
 	{ "burning-ship-lattice-gen" , &generate_burning_ship_lattice_section }
 };
 
+char *ram_units[] = {
+	"B", "KiB", "MiB", "GiB", "TiB"
+};
+
 
 int main(int argc, char **argv)
 {
@@ -88,14 +92,17 @@ int main(int argc, char **argv)
 	}
 
 	ram_nice = (size*size)/clust_total;
-	if (ram_nice < 1024)
-		ram_unit = "B";
-	else if (ram_nice < 1024*1024)
-		ram_nice /= 1024, ram_unit = "KiB";
-	else if (ram_nice < 1024*1024*1024)
-		ram_nice /= (1024*1024), ram_unit = "MiB";
-	else
-		ram_nice /= (1024*1024*1024), ram_unit = "GiB";
+
+	fprintf(stderr, "%f bytes\n", ram_nice);
+
+	i = 1;
+	ram_unit = ram_units[0];
+	while (   ram_nice > 1024
+	       && i < sizeof(ram_units) / sizeof(ram_units[0]))
+	{
+		ram_unit = ram_units[i++];
+		ram_nice /= 1024;
+	}
 
 	fprintf(stderr,
 		"Forecast resource use:\n"
