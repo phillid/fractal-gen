@@ -93,8 +93,6 @@ int main(int argc, char **argv)
 
 	ram_nice = (size*size)/clust_total;
 
-	fprintf(stderr, "%f bytes\n", ram_nice);
-
 	i = 1;
 	ram_unit = ram_units[0];
 	while (   ram_nice > 1024
