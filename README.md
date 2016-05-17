@@ -21,34 +21,60 @@ their default values (shown here in brackets) if left unspecified.
 
 Also note that `-N` should always be used together with `-T`.
 
-	-s size - Integer. Height and width of image in pixels
-	-s max_iterations - Integer. Maximum number of iterations to use to
-	                    determine if number is in the fractal set.
-	-e exponent - Float. Exponent to use in the fractal's calculation. (2)
-	-c cores - Integer > 0. Number of cores to assume computer has.
-			   (sysconf(_SC_NPROCESSORS_ONLN))
-	-t thread_multiplier - Integer > 0. Coefficiant to multiply cores by in
-	                       order to achieve count of worker threads to use. (1)
-	-N cluster_id - 0 <= Integer < cluster_total. A unique ID used to determine
-	                which sections of the image this instance should work on.
-	                Clustering explained in the 'Clustering' section of this
-	                document. (0)
-	-T cluster_total - 0 < Integer <= size. Total count of worker instances in
-	                   this cluster.
+	-s size              Integer
+	                     Height and width of image in pixels
+	-s max_iterations    Integer
+	                     Maximum number of iterations to use to determine if
+	                     number is in the fractal set.
+	-e exponent          Float
+	                     Exponent to use in the algorithm. (2)
+	-c cores             Integer > 0
+	                     Number of cores to assume computer has.
+	                     (sysconf(_SC_NPROCESSORS_ONLN))
+	-t thread_multiplier Float > 0
+	                     Coefficient to multiply cores by in order to achieve
+	                     count of worker threads to use. (1)
+	-N cluster_id        0 <= Integer < cluster_total
+	                     A unique ID used to determine which sections of the
+	                     image this instance should work on.
+	-T cluster_total     0 < Integer <= size
+	                     Total count of worker instances in this cluster.
 
 
-## Clustering
+## Spreading computation load
 
-This program allows workload for an image to be spread across multiple
-instances of the program. This means, for example, that you can parallel the
-computation on an image between multiple computers.
+The workload for an image can be spread across multiple threads and multiple
+invocations. This means, for example, that you can parallel the computation
+on an image between multiple computers.
 
 
-### Example
+### Across threads
 
-Let's say we're generating a quick mandelbrot 20000 pixels in width and with
-100 iterations max. We want to spread the load between two identical computers
-in order to perhaps halve the computation time:
+When determining how many worker threads to spawn for an invocation,
+fractal-gen will do three things:
+
+1. Get the thread count from the `-c` flag
+	* Failing this, detect the number of cores available (`_SC_NPROCESSORS_ONLN`)
+3. Multiply this by the thread coefficient (`-t` option)
+
+With the default thread coefficient of 1.0, this will normally just spawn
+a worker thread for every available core on the system. The worker threads
+then divide the image up between themselves by splitting it into columns.
+On an invocation with two worker threads, one will be working on the
+even-numbered columns and the other will work on the odd-numbered ones.
+
+It may become advantageous to adjust the thread coefficient to a number above
+or below unity. At a squeeze, I have had small wall clock gains when running
+at a coefficient of, say, 5. On the other hand, you might want to scale the
+workers back to a fraction of your available cores if you have other things
+to allocate processor time towards.
+
+
+### Across invocations
+
+Let's say we're generating a quick square mandelbrot 20000 pixels in width and
+with 100 iterations max. We want to spread the load between two identical
+computers in order to perhaps halve the computation time:
 
 	# On computer #1:
 	./mandelbrot -s 20000 -i 100 -T 2 -N 0 > 0.pgm
@@ -57,13 +83,11 @@ in order to perhaps halve the computation time:
 
 At the heart of it, each instance will only calculate half of the image. This
 is achieved by (in this case) getting the instance with ID 0 to work on
-the 1st, 3rd, 5th, and other odd numbered rows, while the instance with ID 1
-will work on the rows in between. To point out the (perhaps) obvious,
-interlacing is used in a bid to spread the workload more evenly across cluster
-members.
+the odd numbered rows, while the instance with ID 1 will work on the even
+numbered rows in between.
 
 This will result in two separate pgm files, each 20000x10000 pixels.
-They must be horizontally interlaced in order to form the whole desired image.
+They must be interlaced in order to form the whole desired image.
 This extends to any number of cluster members less than or equal to the image
 size, since the interlacing can only split by row, not column.
 
@@ -76,5 +100,7 @@ Check out [pgm-interlace][pgm-interlace] for a tool to do this job.
    You can specify the number of threads you want it to (see syntax).
 
 2. PGMs are grayscale, so you might want to tint it or apply a pallete of sort.
+   I'm working on an example tool to do this, but there are so many palettes
+   you could use that you might as well write your own.
 
 [pgm-interlace]: https://github.com/phillid/pgm-interlace/
