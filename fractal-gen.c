@@ -48,7 +48,8 @@ char *ram_units[] = {
 };
 
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	unsigned long x = 0;
 	unsigned long width = 0;
@@ -70,23 +71,20 @@ int main(int argc, char **argv)
 	bname = basename(argv[0]);
 	generator = select_generator(bname);
 
-	if (generator == NULL)
-	{
+	if (generator == NULL) {
 		fprintf(stderr, "Unknown fractal '%s' (perhaps try running symlink to me)\n",
 			bname);
 		return 1;
 	}
 
-	if (parse_args(argc, argv))
-	{
+	if (parse_args(argc, argv)) {
 		show_help();
 		return 1;
 	}
 
 	/* Allocate memory for sections */
 	if ((sections = mmap(NULL, sizeof(data_section)*cores, PROT_READ|PROT_WRITE,
-	MAP_SHARED|MAP_ANONYMOUS, -1, 0)) == (data_section*)MAP_FAILED)
-	{
+	MAP_SHARED|MAP_ANONYMOUS, -1, 0)) == (data_section*)MAP_FAILED) {
 		perror("mmap");
 		return 1;
 	}
@@ -96,8 +94,7 @@ int main(int argc, char **argv)
 	i = 1;
 	ram_unit = ram_units[0];
 	while (   ram_nice > 1024
-	       && i < sizeof(ram_units) / sizeof(ram_units[0]))
-	{
+	       && i < sizeof(ram_units) / sizeof(ram_units[0])) {
 		ram_unit = ram_units[i++];
 		ram_nice /= 1024;
 	}
@@ -110,8 +107,7 @@ int main(int argc, char **argv)
 		ram_nice,
 		ram_unit);
 	/* Spawn all the threads! Something something interlacing */
-	for (i = 0; i < cores; i++)
-	{
+	for (i = 0; i < cores; i++) {
 		/* A bit complex, icky, will document later */
 		if (i < (size%cores))
 			width = (size/cores)+1;
@@ -121,8 +117,7 @@ int main(int argc, char **argv)
 		toalloc = width*size;
 		toalloc = ceilf((double)toalloc/clust_total);
 
-		if ((sections[i].data = malloc(toalloc)) == NULL)
-		{
+		if ((sections[i].data = malloc(toalloc)) == NULL) {
 			fprintf(stderr, "\nmalloc of %lu bytes failed\n", toalloc);
 			perror("malloc");
 
@@ -143,21 +138,19 @@ int main(int argc, char **argv)
 
 	s = &(sections[cores-1]);
 
-	switch (child = fork())
-	{
-		case 0:
-			while((x = s->idx) < s->datasize)
-			{
-				fprintf(stderr, "Thread %d: %.4f%%\r",
-						cores-1,
-						100.f*(double)x/s->datasize);
-				sleep(1);
-			}
-			break;
-		case -1:
-			perror("progress thread fork");
-		default:
-			break;
+	switch (child = fork()) {
+	case 0:
+		while((x = s->idx) < s->datasize) {
+			fprintf(stderr, "Thread %d: %.4f%%\r",
+					cores-1,
+					100.f*(double)x/s->datasize);
+			sleep(1);
+		}
+		break;
+	case -1:
+		perror("progress thread fork");
+	default:
+		break;
 	}
 	/* Wait for each thread to complete */
 	for (i = 0; i < cores; i++)
@@ -170,8 +163,7 @@ int main(int argc, char **argv)
 
 	/* Vomit the data segments onto stdout, interlacing frames from threads
 	 * FIXME: look at buffering if at all possible */
-	for (y = 0; y < size/clust_total; y++)
-	{
+	for (y = 0; y < size/clust_total; y++) {
 		for (x = 0; x < size; x++)
 		{
 			s = &(sections[x%cores]);
@@ -189,7 +181,8 @@ int main(int argc, char **argv)
 }
 
 
-int parse_args(int argc, char **argv)
+int
+parse_args(int argc, char **argv)
 {
 	char opt = '\0';
 
@@ -206,8 +199,7 @@ int parse_args(int argc, char **argv)
 	if (argc <= 1)
 		return 1;
 
-	while ( (opt = getopt(argc, argv, "s:i:e:c:t:N:T:")) != -1 )
-	{
+	while ( (opt = getopt(argc, argv, "s:i:e:c:t:N:T:")) != -1 ) {
 		switch (opt)
 		{
 			case 's': size = atoi(optarg); break;
@@ -228,39 +220,33 @@ int parse_args(int argc, char **argv)
 	/* Extend number of threads to multiplier value */
 	cores *= thread_mult;
 
-	if (size <= 0)
-	{
+	if (size <= 0) {
 		fprintf(stderr, "ERROR: size must be positive\n");
 		return 1;
 	}
 
-	if (iterat <= 0)
-	{
+	if (iterat <= 0) {
 		fprintf(stderr, "ERROR: max iteration count must be positive\n");
 		return 1;
 	}
 
-	if (clust_id >= clust_total)
-	{
+	if (clust_id >= clust_total) {
 		fprintf(stderr, "WARN: Node ID cannot be >= node count\n");
 		return 1;
 	}
 
 	/* Interlacing is row-based, can't have more workers than columns */
-	if (cores > size)
-	{
+	if (cores > size) {
 		cores = size;
 		fprintf(stderr, "WARN: Capping number of threads to image size (%d)\n", cores);
 	}
 
-	if (size % clust_total != 0)
-	{
+	if (size % clust_total != 0) {
 		fprintf(stderr, "ERROR: image size must be an exact multiple of clust_total\n");
 		return 1;
 	}
 
-	if (cores <= 0)
-	{
+	if (cores <= 0) {
 		fprintf(stderr, "ERROR: core counts should be positive\n");
 		return 1;
 	}

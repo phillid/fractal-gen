@@ -27,7 +27,8 @@
 
 #include "common.h"
 
-void *generate_burning_ship_lattice_section(void *section)
+void
+*generate_burning_ship_lattice_section(void *section)
 {
 	data_section *d = (data_section*)section;
 	unsigned int x = 0;
@@ -44,15 +45,12 @@ void *generate_burning_ship_lattice_section(void *section)
 	/* FIXME document this */
 	b = clust_id*(size_units/size)+top; /* FIXME document this */
 
-	for (y = clust_id; y < size; y+=clust_total)
-	{
+	for (y = clust_id; y < size; y+=clust_total) {
 		a = d->core*(size_units/size)+left;
-		for (x = d->core; x < size; x += cores)
-		{
+		for (x = d->core; x < size; x += cores) {
 			z = 0;
 			c = a+I*b;
-			for (i = 0; i < iterat; i++)
-			{
+			for (i = 0; i < iterat; i++) {
 				if (cabs(z) >= 2)
 					break;
 

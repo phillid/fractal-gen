@@ -28,8 +28,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-typedef struct
-{
+typedef struct {
 	volatile unsigned long idx;
 	unsigned long core;
 	unsigned long width;
