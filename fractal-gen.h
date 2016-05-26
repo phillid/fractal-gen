@@ -28,8 +28,15 @@
 #include <stdbool.h>
 #include <pthread.h>
 
+struct frame {
+	double top;
+	double left;
+	double scale;
+};
+
 typedef struct {
 	volatile unsigned long idx;
+	struct frame parent_frame;
 	unsigned long core;
 	unsigned long width;
 	unsigned long datasize;
@@ -48,6 +55,7 @@ char *argv0;
 
 typedef void* (*generator_func)(void *);
 
+void defaultsd(double*, double);
 int parse_args(int argc, char **argv);
 generator_func select_generator(const char* name);
 void show_help();
