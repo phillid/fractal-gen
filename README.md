@@ -6,6 +6,7 @@ This is a tiny program which will output a binary [PGM](https://wikipedia.org/wi
 
 	./mandelbrot-gen -s size -i max_iterations [-e exponent] \
 	                 [-c cores] [-t thread_multiplier]
+	                 [-x left -y top] [-z scale]
 	                 [-N cluster-id -T cluster-total] > output.pgm
 
 Also check out the other algorithms like `tricorn-gen` and `burning-ship-gen`.
@@ -34,6 +35,10 @@ Also note that `-N` should always be used together with `-T`.
 	-t thread_multiplier Float > 0
 	                     Coefficient to multiply cores by in order to achieve
 	                     count of worker threads to use. (1)
+	-x left              position of left of image on the real axis (x+iy)
+	-y top               position of top of image on the imaginary axis (x+iy)
+	-z scale             width and height of image in units on the cartesian
+	                     plane
 	-N cluster_id        0 <= Integer < cluster_total
 	                     A unique ID used to determine which sections of the
 	                     image this instance should work on.
