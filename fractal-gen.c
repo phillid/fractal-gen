@@ -37,16 +37,24 @@
 #include <sys/mman.h>
 #include <string.h>
 
+struct frame f;
+
 static struct section_generator generators[] = {
 	{ "mandelbrot-gen" , &generate_mandelbrot_section },
-	{ "burning-ship-gen" , &generate_burning_ship_section },
-	{ "burning-ship-lattice-gen" , &generate_burning_ship_lattice_section }
+	{ "burning-ship-gen" , &generate_burning_ship_section }
 };
 
 char *ram_units[] = {
 	"B", "KiB", "MiB", "GiB", "TiB"
 };
 
+
+void
+defaultsd(double *who, double def)
+{
+	if (isnan(*who))
+		*who = def;
+}
 
 int
 main(int argc, char **argv)
@@ -129,8 +137,12 @@ main(int argc, char **argv)
 			munmap(sections, sizeof(data_section)*cores);
 			return 1;
 		}
+		/* FIXME repetition */
 		sections[i].core = i;
 		sections[i].width = width;
+		sections[i].parent_frame.top = f.top;
+		sections[i].parent_frame.left = f.left;
+		sections[i].parent_frame.scale = f.scale;
 		sections[i].datasize = toalloc;
 		fprintf(stderr, " -> Thread %lu\r", i);
 		pthread_create(&sections[i].thread, NULL, generator, &(sections[i]));
@@ -195,20 +207,31 @@ parse_args(int argc, char **argv)
 	clust_id = 0;
 	clust_total = 1;
 
+	f.left = nan("");
+	f.top = nan("");
+	f.scale = nan("");
+
 	/* bail out early if no arguments are supplied */
 	if (argc <= 1)
 		return 1;
 
-	while ( (opt = getopt(argc, argv, "s:i:e:c:t:N:T:")) != -1 ) {
+	while ( (opt = getopt(argc, argv, "s:i:e:c:t:N:T:x:y:z:")) != -1 ) {
 		switch (opt)
 		{
 			case 's': size = atoi(optarg); break;
 			case 'i': iterat = atoi(optarg); break;
 			case 'e': power = atof(optarg); break;
+
 			case 'c': cores = atoi(optarg); break;
 			case 't': thread_mult = atof(optarg); break;
+
 			case 'N': clust_id = atoi(optarg); break;
 			case 'T': clust_total = atoi(optarg); break;
+
+			case 'x': f.left = atof(optarg); break;
+			case 'y': f.top = atof(optarg); break;
+			case 'z': f.scale = atof(optarg); break;
+
 			/* redundant case for '?', but explicitness is best */
 			case '?':
 			default:
