@@ -27,5 +27,3 @@
 
 void *generate_mandelbrot_section(void *section);
 void *generate_burning_ship_section(void *section);
-void *generate_burning_ship_lattice_section(void *section);
-void *generate_tricorn_section(void *section);
