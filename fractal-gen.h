@@ -29,8 +29,8 @@
 #include <pthread.h>
 
 struct frame {
-	double top;
-	double left;
+	double x;
+	double y;
 	double scale;
 };
 

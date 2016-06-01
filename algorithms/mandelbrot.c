@@ -34,18 +34,21 @@ void
 	struct frame *f = &(d->parent_frame);
 	unsigned int x,y,i;
 	double a,b;
+	double left, top;
 	double complex z,c;
 
-	defaultsd(&d->parent_frame.top, -1.75f);
-	defaultsd(&d->parent_frame.left, -2.5f);
 	defaultsd(&d->parent_frame.scale, 3.5f);
+	defaultsd(&d->parent_frame.x, -0.75f);
+	defaultsd(&d->parent_frame.y, 0);
 
+	left = d->parent_frame.x - (d->parent_frame.scale / 2);
+	top = d->parent_frame.y - (d->parent_frame.scale / 2);
 
 	/* FIXME document this */
-	b = clust_id*(f->scale/size)+f->top; /* FIXME document this */
+	b = clust_id*(f->scale/size)+top; /* FIXME document this */
 
 	for (y = clust_id; y < size; y += clust_total) {
-		a = d->core*(f->scale/size)+f->left;
+		a = d->core*(f->scale/size)+left;
 		for (x = d->core; x < size; x += cores) {
 			z = 0;
 			c = a + I*b;
