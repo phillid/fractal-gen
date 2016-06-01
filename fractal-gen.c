@@ -155,7 +155,7 @@ main(int argc, char **argv)
 		while(1) {
 			fprintf(stderr, "Thread %d: %.4f%%\r",
 					cores-1,
-					100.f*(double)x/s->datasize);
+					100.f*(double)s->idx/s->datasize);
 			sleep(1);
 		}
 		break;
