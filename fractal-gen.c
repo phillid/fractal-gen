@@ -152,7 +152,7 @@ main(int argc, char **argv)
 
 	switch (child = fork()) {
 	case 0:
-		while((x = s->idx) < s->datasize) {
+		while(1) {
 			fprintf(stderr, "Thread %d: %.4f%%\r",
 					cores-1,
 					100.f*(double)x/s->datasize);
