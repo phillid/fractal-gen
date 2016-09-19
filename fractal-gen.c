@@ -56,6 +56,15 @@ defaultsd(double *who, double def)
 		*who = def;
 }
 
+void
+*generate(void *section) {
+	data_section *s = (data_section*)section;
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &(s->time_start));
+	(s->generator)(s);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &(s->time_end));
+	return NULL;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -107,6 +116,10 @@ main(int argc, char **argv)
 		ram_nice /= 1024;
 	}
 
+	/* FIXME clean up */
+	struct timespec time_start, time_end;
+	clock_gettime(CLOCK_REALTIME, &time_start);
+
 	fprintf(stderr,
 		"Forecast resource use:\n"
 		" Threads: %d\n"
@@ -142,10 +155,11 @@ main(int argc, char **argv)
 		sections[i].width = width;
 		sections[i].parent_frame.y = f.y;
 		sections[i].parent_frame.x = f.x;
+		sections[i].generator = generator;
 		sections[i].parent_frame.scale = f.scale;
 		sections[i].datasize = toalloc;
 		fprintf(stderr, " -> Thread %lu\r", i);
-		pthread_create(&sections[i].thread, NULL, generator, &(sections[i]));
+		pthread_create(&sections[i].thread, NULL, generate, &(sections[i]));
 	}
 
 	s = &(sections[cores-1]);
@@ -169,6 +183,20 @@ main(int argc, char **argv)
 		pthread_join(sections[i].thread, NULL);
 
 	kill(child, SIGKILL);
+
+	clock_gettime(CLOCK_REALTIME, &time_end);
+
+	long time_wall = time_end.tv_sec - time_start.tv_sec;
+	long time_ch = 0;
+	for (i = 0; i < cores; i++) {
+		time_ch += sections[i].time_end.tv_sec - sections[i].time_start.tv_sec;
+	}
+
+	fprintf(stderr,
+		"Wall-clock time: %ld\n"
+		"Worker time: %ld\n"
+		"Multi-core efficiency: %.2f%%\n"
+		, time_wall, time_ch, 100*((double)(time_wall*cores))/time_ch);
 
 	/* Output PGM Header */
 	printf("P5\n%d\n%d\n255\n",size,size/clust_total);
