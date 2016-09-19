@@ -110,4 +110,11 @@ Check out [pgm-interlace][pgm-interlace] for a tool to do this job.
    I'm working on an example tool to do this, but there are so many palettes
    you could use that you might as well write your own.
 
+### Areas of interest
+
+Use the `-x`, `-y` and `-z` parameters to see them.
+Have a play with the iteration count; as a general rule you will need more iterations when the scale is decreased
+
+ * Tiny lone mandelbrot (0.001643721971153 + 0.822467633298876i), scale = 0.00000000005
+
 [pgm-interlace]: https://github.com/phillid/pgm-interlace/
