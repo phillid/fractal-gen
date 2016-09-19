@@ -56,6 +56,15 @@ defaultsd(double *who, double def)
 		*who = def;
 }
 
+double
+timespec_diff(struct timespec start, struct timespec end) {
+	long weight = 1000000000;
+	time_t s = (end.tv_sec - start.tv_sec);
+	long ns = (end.tv_nsec - start.tv_nsec) % weight;
+
+	return s + ((double)ns)/weight;
+}
+
 void
 *generate(void *section) {
 	data_section *s = (data_section*)section;
@@ -186,17 +195,21 @@ main(int argc, char **argv)
 
 	clock_gettime(CLOCK_REALTIME, &time_end);
 
-	long time_wall = time_end.tv_sec - time_start.tv_sec;
-	long time_ch = 0;
+	fprintf(stderr, "\nDone\n");
+
+	double time_wall = timespec_diff(time_start, time_end);
+	double time_ch = 0;
+
 	for (i = 0; i < cores; i++) {
-		time_ch += sections[i].time_end.tv_sec - sections[i].time_start.tv_sec;
+		data_section *s = &(sections[i]);
+		time_ch += (timespec_diff(s->time_start, s->time_end)) / cores;
 	}
 
 	fprintf(stderr,
-		"Wall-clock time: %ld\n"
-		"Worker time: %ld\n"
+		"Wall-clock time: %.2f seconds\n"
+		"Average worker time: %.2f seconds\n"
 		"Multi-core efficiency: %.2f%%\n"
-		, time_wall, time_ch, 100*((double)(time_wall*cores))/time_ch);
+		, time_wall, time_ch, 100*(time_ch)/time_wall);
 
 	/* Output PGM Header */
 	printf("P5\n%d\n%d\n255\n",size,size/clust_total);
@@ -210,7 +223,6 @@ main(int argc, char **argv)
 			putchar(s->data[y*(s->width) + x/cores]);
 		}
 	}
-	fprintf(stderr, "\nDone\n");
 
 	/* Free the memory we allocated for point data */
 	for (i = 0; i < cores; i++)
