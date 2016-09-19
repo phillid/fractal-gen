@@ -140,8 +140,8 @@ main(int argc, char **argv)
 		/* FIXME repetition */
 		sections[i].core = i;
 		sections[i].width = width;
-		sections[i].parent_frame.top = f.top;
-		sections[i].parent_frame.left = f.left;
+		sections[i].parent_frame.y = f.y;
+		sections[i].parent_frame.x = f.x;
 		sections[i].parent_frame.scale = f.scale;
 		sections[i].datasize = toalloc;
 		fprintf(stderr, " -> Thread %lu\r", i);
@@ -152,10 +152,10 @@ main(int argc, char **argv)
 
 	switch (child = fork()) {
 	case 0:
-		while((x = s->idx) < s->datasize) {
+		while(1) {
 			fprintf(stderr, "Thread %d: %.4f%%\r",
 					cores-1,
-					100.f*(double)x/s->datasize);
+					100.f*(double)s->idx/s->datasize);
 			sleep(1);
 		}
 		break;
@@ -207,8 +207,8 @@ parse_args(int argc, char **argv)
 	clust_id = 0;
 	clust_total = 1;
 
-	f.left = nan("");
-	f.top = nan("");
+	f.x = nan("");
+	f.y = nan("");
 	f.scale = nan("");
 
 	/* bail out early if no arguments are supplied */
@@ -228,8 +228,8 @@ parse_args(int argc, char **argv)
 			case 'N': clust_id = atoi(optarg); break;
 			case 'T': clust_total = atoi(optarg); break;
 
-			case 'x': f.left = atof(optarg); break;
-			case 'y': f.top = atof(optarg); break;
+			case 'x': f.x = atof(optarg); break;
+			case 'y': f.y = atof(optarg); break;
 			case 'z': f.scale = atof(optarg); break;
 
 			/* redundant case for '?', but explicitness is best */

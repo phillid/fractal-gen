@@ -35,10 +35,12 @@ Also note that `-N` should always be used together with `-T`.
 	-t thread_multiplier Float > 0
 	                     Coefficient to multiply cores by in order to achieve
 	                     count of worker threads to use. (1)
-	-x left              position of left of image on the real axis (x+iy)
-	-y top               position of top of image on the imaginary axis (x+iy)
-	-z scale             width and height of image in units on the cartesian
-	                     plane
+	-x xval              Float
+	                     x value of centre of image on the real axis (x+iy)
+	-y yval              Float
+	                     y value of centre of image on the imaginary axis (x+iy)
+	-z scale             Float
+	                     width and height of image (units on cartesian plane)
 	-N cluster_id        0 <= Integer < cluster_total
 	                     A unique ID used to determine which sections of the
 	                     image this instance should work on.
@@ -107,5 +109,12 @@ Check out [pgm-interlace][pgm-interlace] for a tool to do this job.
 2. PGMs are grayscale, so you might want to tint it or apply a pallete of sort.
    I'm working on an example tool to do this, but there are so many palettes
    you could use that you might as well write your own.
+
+### Areas of interest
+
+Use the `-x`, `-y` and `-z` parameters to see them.
+Have a play with the iteration count; as a general rule you will need more iterations when the scale is decreased
+
+ * Tiny lone mandelbrot (0.001643721971153 + 0.822467633298876i), scale = 0.00000000005
 
 [pgm-interlace]: https://github.com/phillid/pgm-interlace/
