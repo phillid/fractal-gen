@@ -290,8 +290,9 @@ generator_func select_generator(const char* name)
 void show_help()
 {
 	fprintf(stderr,
-			"%s -s size -i iterat [-e exponent]\n"
-			"        [-c cores] [-t thread_multiplier]\n"
-			"        [-N cluster-id -T cluster-total]\n",
-			argv0);
+		"%s -s size -i max_iterations [-e exponent]\n"
+		"        [-c cores] [-t thread_multiplier]\n"
+		"        [-x left -y top] [-z scale]\n"
+		"        [-N cluster-id -T cluster-total]\n",
+		argv0);
 }
