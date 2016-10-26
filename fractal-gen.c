@@ -109,7 +109,7 @@ main(int argc, char **argv)
 	}
 
 	/* Allocate memory for sections */
-	if ((sections = mmap(NULL, sizeof(data_section)*cores, PROT_READ|PROT_WRITE,
+	if ((sections = mmap(NULL, sizeof(data_section)*threads, PROT_READ|PROT_WRITE,
 	MAP_SHARED|MAP_ANONYMOUS, -1, 0)) == (data_section*)MAP_FAILED) {
 		perror("mmap");
 		return 1;
@@ -133,16 +133,16 @@ main(int argc, char **argv)
 		"Forecast resource use:\n"
 		" Threads: %d\n"
 		" RAM    : ~%.4f %s\n",
-		cores,
+		threads,
 		ram_nice,
 		ram_unit);
 	/* Spawn all the threads! Something something interlacing */
-	for (i = 0; i < cores; i++) {
+	for (i = 0; i < threads; i++) {
 		/* A bit complex, icky, will document later */
-		if (i < (size%cores))
-			width = (size/cores)+1;
+		if (i < (size%threads))
+			width = (size/threads)+1;
 		else
-			width = (size/cores);
+			width = (size/threads);
 
 		toalloc = width*size;
 		toalloc = ceilf((double)toalloc/clust_total);
@@ -156,7 +156,7 @@ main(int argc, char **argv)
 			while(i-- + 1)
 				free(sections[i].data);
 
-			munmap(sections, sizeof(data_section)*cores);
+			munmap(sections, sizeof(data_section)*threads);
 			return 1;
 		}
 		/* FIXME repetition */
@@ -171,13 +171,13 @@ main(int argc, char **argv)
 		pthread_create(&sections[i].thread, NULL, generate, &(sections[i]));
 	}
 
-	s = &(sections[cores-1]);
+	s = &(sections[threads-1]);
 
 	switch (child = fork()) {
 	case 0:
 		while(1) {
 			fprintf(stderr, "Thread %d: %.4f%%\r",
-					cores-1,
+					threads-1,
 					100.f*(double)s->idx/s->datasize);
 			sleep(1);
 		}
@@ -188,7 +188,7 @@ main(int argc, char **argv)
 		break;
 	}
 	/* Wait for each thread to complete */
-	for (i = 0; i < cores; i++)
+	for (i = 0; i < threads; i++)
 		pthread_join(sections[i].thread, NULL);
 
 	kill(child, SIGKILL);
@@ -200,9 +200,9 @@ main(int argc, char **argv)
 	double time_wall = timespec_diff(time_start, time_end);
 	double time_ch = 0;
 
-	for (i = 0; i < cores; i++) {
+	for (i = 0; i < threads; i++) {
 		data_section *s = &(sections[i]);
-		time_ch += (timespec_diff(s->time_start, s->time_end)) / cores;
+		time_ch += (timespec_diff(s->time_start, s->time_end)) / threads;
 	}
 
 	fprintf(stderr,
@@ -219,16 +219,16 @@ main(int argc, char **argv)
 	for (y = 0; y < size/clust_total; y++) {
 		for (x = 0; x < size; x++)
 		{
-			s = &(sections[x%cores]);
-			putchar(s->data[y*(s->width) + x/cores]);
+			s = &(sections[x%threads]);
+			putchar(s->data[y*(s->width) + x/threads]);
 		}
 	}
 
 	/* Free the memory we allocated for point data */
-	for (i = 0; i < cores; i++)
+	for (i = 0; i < threads; i++)
 		free(sections[i].data);
 
-	munmap(sections, sizeof(data_section)*cores);
+	munmap(sections, sizeof(data_section)*threads);
 	return 0;
 }
 
@@ -242,7 +242,7 @@ parse_args(int argc, char **argv)
 	size = 0;
 	iterat = 0;
 	power = 2;
-	cores = sysconf(_SC_NPROCESSORS_ONLN);
+	threads = sysconf(_SC_NPROCESSORS_ONLN);
 	thread_mult = 1;
 	clust_id = 0;
 	clust_total = 1;
@@ -262,7 +262,7 @@ parse_args(int argc, char **argv)
 			case 'i': iterat = atoi(optarg); break;
 			case 'e': power = atof(optarg); break;
 
-			case 'c': cores = atoi(optarg); break;
+			case 'c': threads = atoi(optarg); break;
 			case 't': thread_mult = atof(optarg); break;
 
 			case 'N': clust_id = atoi(optarg); break;
@@ -281,7 +281,7 @@ parse_args(int argc, char **argv)
 	}
 
 	/* Extend number of threads to multiplier value */
-	cores *= thread_mult;
+	threads *= thread_mult;
 
 	if (size <= 0) {
 		fprintf(stderr, "ERROR: size must be positive\n");
@@ -299,9 +299,9 @@ parse_args(int argc, char **argv)
 	}
 
 	/* Interlacing is row-based, can't have more workers than columns */
-	if (cores > size) {
-		cores = size;
-		fprintf(stderr, "WARN: Capping number of threads to image size (%d)\n", cores);
+	if (threads > size) {
+		threads = size;
+		fprintf(stderr, "WARN: Capping number of threads to image size (%d)\n", threads);
 	}
 
 	if (size % clust_total != 0) {
@@ -309,7 +309,7 @@ parse_args(int argc, char **argv)
 		return 1;
 	}
 
-	if (cores <= 0) {
+	if (threads <= 0) {
 		fprintf(stderr, "ERROR: core counts should be positive\n");
 		return 1;
 	}
@@ -331,7 +331,7 @@ void show_help()
 {
 	fprintf(stderr,
 			"%s -s size -i iterat [-e exponent]\n"
-			"        [-c cores] [-t thread_multiplier]\n"
+			"        [-c threads] [-t thread_multiplier]\n"
 			"        [-N cluster-id -T cluster-total]\n",
 			argv0);
 }

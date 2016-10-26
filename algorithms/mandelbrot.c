@@ -49,7 +49,7 @@ void
 
 	for (y = clust_id; y < size; y += clust_total) {
 		a = d->core*(f->scale/size)+left;
-		for (x = d->core; x < size; x += cores) {
+		for (x = d->core; x < size; x += threads) {
 			z = 0;
 			c = a + I*b;
 			for (i = 0; i < iterat; i++) {
@@ -59,7 +59,7 @@ void
 				z = cpow(z , power) + c;
 			}
 			d->data[d->idx++] = (255*i)/iterat;
-			a += cores*(f->scale/size);
+			a += threads*(f->scale/size);
 		}
 		b += clust_total*(f->scale/size);
 	}

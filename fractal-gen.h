@@ -49,7 +49,7 @@ typedef struct data_section_s {
 	pthread_t thread;
 } data_section;
 
-unsigned int cores;
+unsigned int threads;
 unsigned int clust_id;
 unsigned int clust_total;
 unsigned int size;
