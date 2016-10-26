@@ -37,6 +37,7 @@
 #include <sys/mman.h>
 #include <string.h>
 
+pid_t child = -1;
 struct frame f;
 
 static struct section_generator generators[] = {
@@ -74,9 +75,46 @@ void
 	return NULL;
 }
 
+void
+handle_signal(int sig) {
+	switch (sig) {
+	case SIGSEGV:
+		/* kill the forked thread and abort */
+		if (child > 0) {
+			kill(child, SIGKILL);
+			abort();
+		}
+		break;
+	default:
+		/* do nothing */
+		break;
+	}
+}
+
+void
+install_sigaction(void handler(int)) {
+	struct sigaction sa;
+
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handler;
+	sigaction(SIGSEGV, &sa, NULL);
+}
+
+void
+destroy_sections(data_section **s, unsigned long count) {
+	unsigned long i = 0;
+
+	/* free malloced data memory */
+	for (i = 0; i < count; i++) {
+		free((*s)[i].data);
+	}
+
+	/* unmap mmapped sections */
+	munmap(s, sizeof(data_section)*threads);
+}
+
 int
-main(int argc, char **argv)
-{
+main(int argc, char **argv) {
 	unsigned long x = 0;
 	unsigned long width = 0;
 	size_t toalloc = 0;
@@ -88,10 +126,12 @@ main(int argc, char **argv)
 	data_section* sections = NULL;
 	data_section *s = NULL;
 	generator_func generator = NULL;
-	pid_t child = 0;
 
 	/* who are we? */
 	argv0 = argv[0];
+
+	/* set up signal handler */
+	install_sigaction(handle_signal);
 
 	/* Select correct generator for the fractal type */
 	bname = basename(argv[0]);
@@ -151,12 +191,8 @@ main(int argc, char **argv)
 			fprintf(stderr, "\nmalloc of %zd bytes failed\n", toalloc);
 			perror("malloc");
 
-			/* Free already allocated chunks of memory */
-			i--;
-			while(i-- + 1)
-				free(sections[i].data);
-
-			munmap(sections, sizeof(data_section)*threads);
+			/* free resources allocated to sections array */
+			destroy_sections(&sections, i-1);
 			return 1;
 		}
 		/* FIXME repetition */
@@ -168,7 +204,11 @@ main(int argc, char **argv)
 		sections[i].parent_frame.scale = f.scale;
 		sections[i].datasize = toalloc;
 		fprintf(stderr, " -> Thread %lu\r", i);
-		pthread_create(&sections[i].thread, NULL, generate, &(sections[i]));
+		if (pthread_create(&sections[i].thread, NULL, generate, &(sections[i])) != 0) {
+			perror("pthread_create");
+			destroy_sections(&sections, i);
+			return 1;
+		}
 	}
 
 	s = &(sections[threads-1]);
@@ -224,11 +264,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	/* Free the memory we allocated for point data */
-	for (i = 0; i < threads; i++)
-		free(sections[i].data);
-
-	munmap(sections, sizeof(data_section)*threads);
+	destroy_sections(&sections, threads);
 	return 0;
 }
 
