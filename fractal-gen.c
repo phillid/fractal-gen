@@ -202,12 +202,12 @@ main(int argc, char **argv)
 
 	for (i = 0; i < threads; i++) {
 		data_section *s = &(sections[i]);
-		time_ch += (timespec_diff(s->time_start, s->time_end)) / threads;
+		time_ch += (timespec_diff(s->time_start, s->time_end)) / sysconf(_SC_NPROCESSORS_ONLN);
 	}
 
 	fprintf(stderr,
 		"Wall-clock time: %.2f seconds\n"
-		"Average worker time: %.2f seconds\n"
+		"Average time per CPU thread: %.2f seconds\n"
 		"Multi-core efficiency: %.2f%%\n"
 		, time_wall, time_ch, 100*(time_ch)/time_wall);
 
