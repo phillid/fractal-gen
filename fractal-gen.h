@@ -28,16 +28,21 @@
 #include <stdbool.h>
 #include <pthread.h>
 
+typedef void* (*generator_func)(void *);
+
 struct frame {
 	double x;
 	double y;
 	double scale;
 };
 
-typedef struct {
+typedef struct data_section_s {
 	volatile unsigned long idx;
+	generator_func generator;
 	struct frame parent_frame;
 	unsigned long core;
+	struct timespec time_start;
+	struct timespec time_end;
 	unsigned long width;
 	unsigned long datasize;
 	char* data;
@@ -53,7 +58,6 @@ double power;
 double thread_mult; /* number to multiply available cores by to get thread count */
 char *argv0;
 
-typedef void* (*generator_func)(void *);
 
 void defaultsd(double*, double);
 int parse_args(int argc, char **argv);
