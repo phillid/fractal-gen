@@ -126,7 +126,7 @@ main(int argc, char **argv)
 		toalloc = ceilf((double)toalloc/clust_total);
 
 		if ((sections[i].data = malloc(toalloc)) == NULL) {
-			fprintf(stderr, "\nmalloc of %lu bytes failed\n", toalloc);
+			fprintf(stderr, "\nmalloc of %zd bytes failed\n", toalloc);
 			perror("malloc");
 
 			/* Free already allocated chunks of memory */
