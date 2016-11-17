@@ -49,11 +49,11 @@ typedef struct data_section_s {
 	pthread_t thread;
 } data_section;
 
-unsigned int threads;
-unsigned int clust_id;
-unsigned int clust_total;
-unsigned int size;
-unsigned int iterat;
+unsigned long threads;
+unsigned long clust_id;
+unsigned long clust_total;
+unsigned long size;
+unsigned long iterat;
 double power;
 double thread_mult; /* number to multiply available cores by to get thread count */
 char *argv0;

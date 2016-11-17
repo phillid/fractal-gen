@@ -171,7 +171,7 @@ main(int argc, char **argv) {
 
 	fprintf(stderr,
 		"Forecast resource use:\n"
-		" Threads: %d\n"
+		" Threads: %lu\n"
 		" RAM    : ~%.4f %s\n",
 		threads,
 		ram_nice,
@@ -216,7 +216,7 @@ main(int argc, char **argv) {
 	switch (child = fork()) {
 	case 0:
 		while(1) {
-			fprintf(stderr, "Thread %d: %.4f%%\r",
+			fprintf(stderr, "Thread %lu: %.4f%%\r",
 					threads-1,
 					100.f*(double)s->idx/s->datasize);
 			sleep(1);
@@ -252,7 +252,7 @@ main(int argc, char **argv) {
 		, time_wall, time_ch, 100*(time_ch)/time_wall);
 
 	/* Output PGM Header */
-	printf("P5\n%d\n%d\n255\n",size,size/clust_total);
+	printf("P5\n%lu\n%lu\n255\n",size,size/clust_total);
 
 	/* Vomit the data segments onto stdout, interlacing frames from threads
 	 * FIXME: look at buffering if at all possible */
@@ -337,7 +337,7 @@ parse_args(int argc, char **argv)
 	/* Interlacing is row-based, can't have more workers than columns */
 	if (threads > size) {
 		threads = size;
-		fprintf(stderr, "WARN: Capping number of threads to image size (%d)\n", threads);
+		fprintf(stderr, "WARN: Capping number of threads to image size (%lu)\n", threads);
 	}
 
 	if (size % clust_total != 0) {
