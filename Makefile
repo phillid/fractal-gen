@@ -18,12 +18,11 @@ fractal-gen: fractal-gen.o \
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean: clean-object
-	rm fractal-gen \
+	rm -f fractal-gen \
 	   mandelbrot-gen \
-	   burning-ship-gen \
-	   -f
+	   burning-ship-gen
 
 clean-object:
-	rm -fv *.o **/*.o
+	rm -f *.o **/*.o
 
 .PHONY: all clean clean-object symlinks
